@@ -4,8 +4,7 @@ A high-level, object-oriented, type-safe, and easy-to-use Discord.js framework f
 
 ## Explanation
 
-I created this framework for personal use, but decided to make it public in case anyone else would like to use it. It's a high-level, object-oriented, type-safe, and easy-to-use Discord.js framework for TypeScript. Although it's still in development, it is already usable. I will continue adding more features and improvements in the future.
-*Flucord is only usable with [Bun](https://bun.sh/) and [TypeScript](https://www.typescriptlang.org/).*
+I created this framework for personal use, but decided to make it public in case anyone else would like to use it. Although it's still in development, it is already usable. I will continue adding more features and improvements in the future. *Flucord is only usable with [Bun](https://bun.sh/) and [TypeScript](https://www.typescriptlang.org/).*
 
 ## Example
 

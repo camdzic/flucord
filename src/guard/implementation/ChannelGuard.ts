@@ -10,6 +10,7 @@ import type {
   UserSelectMenuInteraction
 } from "discord.js";
 import { GuardException } from "../../exception/GuardException";
+import { GuardExecutionFailException } from "../../exception/GuardExecutionFailException";
 import { BaseGuard } from "../BaseGuard";
 
 export class ChannelGuard extends BaseGuard<"any"> {
@@ -36,7 +37,7 @@ export class ChannelGuard extends BaseGuard<"any"> {
       | UserSelectMenuInteraction<"cached">
   ) {
     if (!interaction.channel) {
-      throw new GuardException(
+      throw new GuardExecutionFailException(
         "While executing ChannelGuard, channel was not found"
       );
     }

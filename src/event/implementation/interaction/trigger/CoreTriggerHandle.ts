@@ -10,6 +10,7 @@ import {
   type UserSelectMenuInteraction
 } from "discord.js";
 import { GuardException } from "../../../../exception/GuardException";
+import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import type { BaseTriggerTypeMap } from "../../../../trigger/BaseTrigger";
@@ -62,6 +63,7 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
 
     if (trigger.guards) {
       const failedGuards: any[] = [];
+      const disallowedGuards: any[] = [];
       const triggerGuards = trigger.guards.filter(g =>
         this.isSpecificGuard(g, type)
       );
@@ -70,13 +72,23 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
         try {
           await guard.execute(interaction);
         } catch (error) {
-          if (error instanceof GuardException) {
+          if (error instanceof GuardExecutionFailException) {
             failedGuards.push(error.message);
+          } else if (error instanceof GuardException) {
+            disallowedGuards.push(error.message);
           }
         }
       }
 
       if (failedGuards.length) {
+        return interaction.reply({
+          embeds: [
+            this.flucord.embeds.error("There was an error executing the guards")
+          ],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+      if (disallowedGuards.length) {
         return interaction.reply({
           embeds: [
             this.flucord.embeds.error(

@@ -1,6 +1,7 @@
 import { DiscordAPIError, type Interaction, MessageFlags } from "discord.js";
 import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
 import { GuardException } from "../../../../exception/GuardException";
+import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
@@ -29,7 +30,8 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
 
       if (slashCommand.guards) {
         const failedGuards: any[] = [];
-        const cooldownFailedguards: any[] = [];
+        const disallowedGuards: any[] = [];
+        const cooldownFailedGuards: any[] = [];
         const commandGuards = slashCommand.guards.filter(g =>
           this.isSpecificGuard(g, "slashCommand")
         );
@@ -38,23 +40,35 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
           try {
             await guard.execute(interaction);
           } catch (error) {
-            if (error instanceof GuardException) {
+            if (error instanceof GuardExecutionFailException) {
               failedGuards.push(error.message);
             } else if (error instanceof CooldownGuardException) {
-              cooldownFailedguards.push(error.message);
+              cooldownFailedGuards.push(error.message);
+            } else if (error instanceof GuardException) {
+              disallowedGuards.push(error.message);
             }
           }
         }
 
-        if (cooldownFailedguards.length) {
+        if (failedGuards.length) {
           return interaction.reply({
             embeds: [
-              this.flucord.embeds.error(cooldownFailedguards.join("\n"))
+              this.flucord.embeds.error(
+                "There was an error executing the guards"
+              )
             ],
             flags: MessageFlags.Ephemeral
           });
         }
-        if (failedGuards.length) {
+        if (cooldownFailedGuards.length) {
+          return interaction.reply({
+            embeds: [
+              this.flucord.embeds.error(cooldownFailedGuards.join("\n"))
+            ],
+            flags: MessageFlags.Ephemeral
+          });
+        }
+        if (disallowedGuards.length) {
           return interaction.reply({
             embeds: [
               this.flucord.embeds.error(

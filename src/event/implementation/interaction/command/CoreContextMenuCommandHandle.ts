@@ -8,6 +8,7 @@ import {
 import type { BaseContextMenuCommandTypeMap } from "../../../../command/BaseContextMenuCommand";
 import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
 import { GuardException } from "../../../../exception/GuardException";
+import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
@@ -56,7 +57,8 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
 
     if (contextMenuCommand.guards) {
       const failedGuards: any[] = [];
-      const cooldownFailedguards: any[] = [];
+      const disallowedGuards: any[] = [];
+      const cooldownFailedGuards: any[] = [];
       const contextMenuCommandGuards = contextMenuCommand.guards.filter(g =>
         this.isSpecificGuard(g, type)
       );
@@ -65,21 +67,31 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
         try {
           await guard.execute(interaction);
         } catch (error) {
-          if (error instanceof GuardException) {
+          if (error instanceof GuardExecutionFailException) {
             failedGuards.push(error.message);
           } else if (error instanceof CooldownGuardException) {
-            cooldownFailedguards.push(error.message);
+            cooldownFailedGuards.push(error.message);
+          } else if (error instanceof GuardException) {
+            disallowedGuards.push(error.message);
           }
         }
       }
 
-      if (cooldownFailedguards.length) {
+      if (failedGuards.length) {
         return interaction.reply({
-          embeds: [this.flucord.embeds.error(cooldownFailedguards.join("\n"))],
+          embeds: [
+            this.flucord.embeds.error("There was an error executing the guards")
+          ],
           flags: MessageFlags.Ephemeral
         });
       }
-      if (failedGuards.length) {
+      if (cooldownFailedGuards.length) {
+        return interaction.reply({
+          embeds: [this.flucord.embeds.error(cooldownFailedGuards.join("\n"))],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+      if (disallowedGuards.length) {
         return interaction.reply({
           embeds: [
             this.flucord.embeds.error(

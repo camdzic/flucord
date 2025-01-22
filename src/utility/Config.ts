@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { ConfigException } from "../exception/ConfigException";
 
 type NestedObject = {
   [key: string]: NestedObject | unknown;
@@ -59,7 +60,7 @@ export class Config {
       return value as T;
     }
 
-    throw new Error(
+    throw new ConfigException(
       `Expected ${typeof value} at "${entry}" and not ${typeof (null as T)}`
     );
   }
@@ -68,7 +69,9 @@ export class Config {
     const value = this.getEntry(entry);
 
     if (typeof value !== "string") {
-      throw new Error(`Expected ${typeof value} at "${entry}" and not string`);
+      throw new ConfigException(
+        `Expected ${typeof value} at "${entry}" and not string`
+      );
     }
 
     return value;
@@ -78,7 +81,9 @@ export class Config {
     const value = this.getEntry(entry);
 
     if (typeof value !== "boolean") {
-      throw new Error(`Expected ${typeof value} at "${entry}" and not boolean`);
+      throw new ConfigException(
+        `Expected ${typeof value} at "${entry}" and not boolean`
+      );
     }
 
     return value;
@@ -88,7 +93,9 @@ export class Config {
     const value = this.getEntry(entry);
 
     if (typeof value !== "number") {
-      throw new Error(`Expected ${typeof value} at "${entry}" and not number`);
+      throw new ConfigException(
+        `Expected ${typeof value} at "${entry}" and not number`
+      );
     }
 
     return value;
@@ -98,7 +105,9 @@ export class Config {
     const value = this.getEntry(entry);
 
     if (typeof value !== "object" || Array.isArray(value) || value === null) {
-      throw new Error(`Expected ${typeof value} at "${entry}" and not object`);
+      throw new ConfigException(
+        `Expected ${typeof value} at "${entry}" and not object`
+      );
     }
 
     return value;
@@ -108,7 +117,9 @@ export class Config {
     const value = this.getEntry(entry);
 
     if (!Array.isArray(value)) {
-      throw new Error(`Expected ${typeof value} at "${entry}" and not array`);
+      throw new ConfigException(
+        `Expected ${typeof value} at "${entry}" and not array`
+      );
     }
 
     return value;
@@ -118,7 +129,7 @@ export class Config {
     const value = this.getEntry(entry);
 
     if (value !== null && value !== undefined) {
-      throw new Error(
+      throw new ConfigException(
         `Expected ${typeof value} at "${entry}" and not null or undefined`
       );
     }
@@ -158,7 +169,7 @@ export class Config {
         return (current as NestedObject)[segment];
       }
 
-      throw new Error(`Entry "${entry}" not found`);
+      throw new ConfigException(`Entry "${entry}" not found`);
     }, this.data);
   }
 }

@@ -11,7 +11,7 @@ export class EmbedBuilder {
     this.flucord = flucord;
   }
 
-  normal() {
+  primary() {
     return new DJSEmbedBuilder().setColor(
       this.flucord.settings.getString("colors.primary") as ColorResolvable
     );

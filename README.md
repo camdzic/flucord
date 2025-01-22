@@ -31,7 +31,7 @@ You can find the wiki and documentation on the [Wiki page](https://github.com/ca
 You can install Flucord using bun:
 
 ```bash
-bun add flucord
+bun add flucord discord.js
 ```
 
 ## Credits

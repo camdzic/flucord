@@ -35,6 +35,7 @@ export * from "./exception/CooldownGuardException";
 
 export * from "./utility/Config";
 export * from "./utility/Component";
+export * from "./utility/EmbedBuilder";
 
 export * from "./utility/constants/Time";
 

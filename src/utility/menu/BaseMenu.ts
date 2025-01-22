@@ -157,6 +157,10 @@ export class BaseMenu<T> {
   }
 
   private handleEnd() {
+    if (this.page.handleEnd) {
+    this.page.handleEnd();
+    }
+
     const updatedComponents = this.message.components.map(row =>
       ActionRowBuilder.from<MessageActionRowComponentBuilder>(row)
     );

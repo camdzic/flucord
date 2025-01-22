@@ -35,5 +35,7 @@ export abstract class BaseMenuPage<T = unknown> {
   handleUserSelectMenu?(interaction: UserSelectMenuInteraction): unknown;
   handleModal?(interaction: ModalMessageModalSubmitInteraction): unknown;
 
+  handleEnd?(): unknown;
+
   abstract render(): Awaitable<BaseMenuPageRenderResult>;
 }

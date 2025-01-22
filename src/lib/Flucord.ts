@@ -24,7 +24,7 @@ export class Flucord {
   readonly settings: Config;
 
   readonly logger: Logger;
-  readonly embeds: EmbedBuilder;
+  embeds: EmbedBuilder;
 
   slashCommands: BaseSlashCommand[] = [];
   contextMenuCommands: BaseContextMenuCommand<

@@ -81,7 +81,7 @@ export class Flucord {
           value.prototype.constructor
         ) {
           // @ts-ignore
-          const instance = new value();
+          const instance = new value(this);
           files.push(instance);
         }
       }

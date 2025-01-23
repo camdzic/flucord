@@ -7,15 +7,10 @@
     "email": "acamdzic0@proton.me"
   },
   "license": "CC BY-NC 4.0",
-  "type": "module",
-  "module": "src/index.ts",
   "exports": {
-    "import": "./src/index.ts",
-    "require": "./src/index.ts"
+    "import": "./src/index.ts"
   },
   "scripts": {
-    "start": "bun run src/index.ts",
-    "dev": "bun run --watch src/index.ts",
     "biome": "biome check --write --unsafe"
   },
   "devDependencies": {

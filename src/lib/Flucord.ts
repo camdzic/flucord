@@ -1,7 +1,6 @@
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
+import { Glob } from "bun";
 import { CronJob } from "cron";
-import { Client, type ClientOptions } from "discord.js";
+import { Client, type ClientEvents, type ClientOptions } from "discord.js";
 import {
   BaseContextMenuCommand,
   type BaseContextMenuCommandTypeMap
@@ -13,6 +12,11 @@ import type {
 } from "../component/BaseComponent";
 import { BaseCron } from "../cron/BaseCron";
 import { BaseEvent } from "../event/BaseEvent";
+import { CoreClientReadyEvent } from "../event/implementation/client/CoreClientReadyEvent";
+import { CoreContextMenuCommandHandle } from "../event/implementation/interaction/command/CoreContextMenuCommandHandle";
+import { CoreSlashCommandHandle } from "../event/implementation/interaction/command/CoreSlashCommandHandle";
+import { CoreComponentHandle } from "../event/implementation/interaction/component/CoreComponentHandle";
+import { CoreTriggerHandle } from "../event/implementation/interaction/trigger/CoreTriggerHandle";
 import { BaseTrigger, type BaseTriggerTypeMap } from "../trigger/BaseTrigger";
 import { Config } from "../utility/Config";
 import { EmbedBuilder } from "../utility/EmbedBuilder";
@@ -26,6 +30,13 @@ export class Flucord {
   readonly logger: Logger;
   embeds: EmbedBuilder;
 
+  events: BaseEvent<keyof ClientEvents>[] = [
+    new CoreClientReadyEvent(this),
+    new CoreContextMenuCommandHandle(this),
+    new CoreSlashCommandHandle(this),
+    new CoreComponentHandle(this),
+    new CoreTriggerHandle(this)
+  ];
   slashCommands: BaseSlashCommand[] = [];
   contextMenuCommands: BaseContextMenuCommand<
     keyof BaseContextMenuCommandTypeMap
@@ -56,41 +67,23 @@ export class Flucord {
     this.start();
   }
 
-  private async loadFiles(...directories: string[]) {
+  private async loadFiles(directory: string) {
     const files: any[] = [];
 
-    for (const directory of directories) {
-      try {
-        const entries = await fs.readdir(directory, {
-          recursive: true
-        });
+    const glob = new Glob(`src/${directory}/**/*.ts`);
+    for await (const file of glob.scan({ absolute: true, onlyFiles: true })) {
+      const module = await import(file);
 
-        for (const entry of entries) {
-          const entryPath = path.join(directory, entry);
-
-          if (path.extname(entryPath) === ".ts") {
-            const module = await import(entryPath);
-
-            for (const value of Object.values(module)) {
-              if (
-                typeof value === "function" &&
-                value.prototype &&
-                value.prototype.constructor
-              ) {
-                // @ts-ignore
-                const instance = new value(this);
-                files.push(instance);
-              }
-            }
-          }
+      for (const value of Object.values(module)) {
+        if (
+          typeof value === "function" &&
+          value.prototype &&
+          value.prototype.constructor
+        ) {
+          // @ts-ignore
+          const instance = new value();
+          files.push(instance);
         }
-      } catch (error) {
-        //@ts-ignore
-        if (error.code === "ENOENT") {
-          continue;
-        }
-
-        throw error;
       }
     }
 
@@ -98,11 +91,11 @@ export class Flucord {
   }
 
   private async loadEvents() {
-    const events = await this.loadFiles(
-      path.join(__dirname, "..", "event", "implementation"),
-      path.join(__dirname, "..", "..", "..", "..", "src", "events")
-    );
-    const baseEvents = events.filter(event => event instanceof BaseEvent);
+    const events = await this.loadFiles("events");
+    const baseEvents = [
+      ...events.filter(event => event instanceof BaseEvent),
+      ...this.events
+    ];
 
     for (const event of baseEvents) {
       this.client[event.once ? "once" : "on"](
@@ -115,23 +108,14 @@ export class Flucord {
   }
 
   private async loadCommands() {
-    const commands = await this.loadFiles(
-      path.join(__dirname, "..", "..", "..", "..", "src", "commands")
-    );
-    const baseSlashCommands = commands.filter(
-      command => command instanceof BaseSlashCommand
-    );
-    const BaseContextMenuCommands = commands.filter(
-      command => command instanceof BaseContextMenuCommand
-    );
+    const commands = await this.loadFiles("commands");
 
-    for (const command of baseSlashCommands) {
-      this.slashCommands.push(command);
-    }
-
-    for (const command of BaseContextMenuCommands) {
-      this.contextMenuCommands.push(command);
-    }
+    this.slashCommands = [
+      ...commands.filter(command => command instanceof BaseSlashCommand)
+    ];
+    this.contextMenuCommands = [
+      ...commands.filter(command => command instanceof BaseContextMenuCommand)
+    ];
 
     this.logger.info(
       `Loaded ${this.slashCommands.length + this.contextMenuCommands.length} commands (${this.slashCommands.length} slash, ${this.contextMenuCommands.length} context menu)`
@@ -139,24 +123,17 @@ export class Flucord {
   }
 
   private async loadTriggers() {
-    const triggers = await this.loadFiles(
-      path.join(__dirname, "..", "..", "..", "..", "src", "triggers")
-    );
-    const baseTriggers = triggers.filter(
-      trigger => trigger instanceof BaseTrigger
-    );
+    const triggers = await this.loadFiles("triggers");
 
-    for (const trigger of baseTriggers) {
-      this.triggers.push(trigger);
-    }
+    this.triggers = [
+      ...triggers.filter(trigger => trigger instanceof BaseTrigger)
+    ];
 
     this.logger.info(`Loaded ${this.triggers.length} triggers`);
   }
 
   private async loadCrons() {
-    const crons = await this.loadFiles(
-      path.join(__dirname, "..", "..", "..", "..", "src", "crons")
-    );
+    const crons = await this.loadFiles("crons");
     const baseCrons = crons.filter(cron => cron instanceof BaseCron);
 
     for (const cron of baseCrons) {

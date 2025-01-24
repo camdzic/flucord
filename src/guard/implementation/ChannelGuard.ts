@@ -14,14 +14,14 @@ import { GuardExecutionFailException } from "../../exception/GuardExecutionFailE
 import { BaseGuard } from "../BaseGuard";
 
 export class ChannelGuard extends BaseGuard<"any"> {
-  private readonly channelId: string;
+  private readonly channelIds: string[];
 
-  constructor(channelId: string) {
+  constructor(...channelIds: string[]) {
     super({
       types: ["any"]
     });
 
-    this.channelId = channelId;
+    this.channelIds = channelIds;
   }
 
   execute(
@@ -42,7 +42,7 @@ export class ChannelGuard extends BaseGuard<"any"> {
       );
     }
 
-    if (interaction.channel.id !== this.channelId) {
+    if (!this.channelIds.includes(interaction.channel.id)) {
       throw new GuardException("Invalid channel");
     }
   }

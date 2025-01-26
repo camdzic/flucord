@@ -10,21 +10,35 @@ export class Config {
   private readonly filePath: string;
 
   private data: NestedObject;
+  private registeredKeys: Set<string>;
 
   constructor(filePath: string, defaults: Record<string, unknown> = {}) {
     this.filePath = filePath;
+
     this.data = {};
+    this.registeredKeys = new Set();
 
     this.ensureFileExists();
     this.loadData();
 
     this.registerDefaults(defaults);
+    this.cleanUnregisteredEntries();
   }
 
   private registerDefaults(defaults: Record<string, unknown>) {
     for (const [entry, defaultValue] of Object.entries(defaults)) {
       this.registerEntry(entry, defaultValue);
     }
+  }
+
+  private cleanUnregisteredEntries() {
+    for (const key in this.data) {
+      if (!this.registeredKeys.has(key)) {
+        delete this.data[key];
+      }
+    }
+
+    this.saveData();
   }
 
   registerEntry(entry: string, defaultValue: unknown = null) {
@@ -43,6 +57,8 @@ export class Config {
       current[key] = defaultValue;
       this.saveData();
     }
+
+    this.registeredKeys.add(entry);
   }
 
   getTypedEntry<T>(entry: string) {

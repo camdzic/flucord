@@ -78,6 +78,9 @@ export class BaseMenu<T> {
   }
 
   private setupInteractionCollector() {
+    const startTime = Date.now();
+    const maxDuration = Time.Minute * 10;
+
     this.collector = new InteractionCollector(this.message.client, {
       message: this.message,
       idle: this.threshold
@@ -142,6 +145,16 @@ export class BaseMenu<T> {
 
           await this.page.handleModal(interaction);
         }
+
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.min(
+          this.threshold,
+          maxDuration - elapsedTime
+        );
+
+        this.collector.resetTimer({
+          idle: remainingTime
+        });
       } catch (error) {
         this.flucord.logger.error("Failed to execute menu interaction");
 

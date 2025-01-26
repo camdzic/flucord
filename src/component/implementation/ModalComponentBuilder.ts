@@ -24,10 +24,11 @@ export class ModalComponentBuilder extends ModalBuilder {
 
     this.setCustomId(customId);
 
-    if (executionThreshold > Time.Minute * 10) {
-      executionThreshold = Time.Minute * 10;
+    if (executionThreshold > Time.Minute * 14) {
+      executionThreshold = Time.Minute * 14;
     }
 
+    const timeoutStartTime = Date.now();
     const timeout = setTimeout(() => {
       deleteComponent(flucord, customId, "modal");
     }, executionThreshold);
@@ -39,6 +40,7 @@ export class ModalComponentBuilder extends ModalBuilder {
       executionThreshold,
       renewOnInteract: false,
       timeout,
+      timeoutCreatedAt: timeoutStartTime,
       execute
     });
 

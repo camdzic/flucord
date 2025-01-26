@@ -13,6 +13,7 @@ import {
 import type { BaseComponentTypeMap } from "../../../../component/BaseComponent";
 import type { Flucord } from "../../../../lib/Flucord";
 import { deleteComponent } from "../../../../utility/Component";
+import { Time } from "../../../../utility/constants/Time";
 import { BaseEvent } from "../../../BaseEvent";
 
 export class CoreComponentHandle extends BaseEvent<"interactionCreate"> {
@@ -85,13 +86,19 @@ export class CoreComponentHandle extends BaseEvent<"interactionCreate"> {
       if (component.renewOnInteract) {
         clearTimeout(component.timeout);
 
+        const maxDuration = Time.Minute * 14;
+        const elapsedTime = Date.now() - component.timeoutCreatedAt;
+        const remainingTime = Math.min(
+          component.executionThreshold,
+          maxDuration - elapsedTime
+        );
+
         component.timeout = setTimeout(() => {
           if (component.expiredExecute) {
             component.expiredExecute(component.id);
           }
-
           deleteComponent(this.flucord, component.id, type);
-        }, component.executionThreshold);
+        }, remainingTime);
       } else {
         stop();
       }

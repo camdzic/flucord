@@ -25,6 +25,7 @@ export type BaseComponent<T extends keyof BaseComponentTypeMap> = {
   executionThreshold: number;
   renewOnInteract: boolean;
   timeout: Timer;
+  timeoutCreatedAt: number;
   execute(interaction: BaseComponentTypeMap[T], stop: () => void): unknown;
   expiredExecute?(id: string): unknown;
 };

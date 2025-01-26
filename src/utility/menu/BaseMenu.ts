@@ -48,8 +48,8 @@ export class BaseMenu<T> {
     this.threshold = threshold;
     this.ephemeral = ephemeral;
 
-    if (this.threshold > Time.Minute * 10) {
-      this.threshold = Time.Minute * 10;
+    if (this.threshold > Time.Minute * 14) {
+      this.threshold = Time.Minute * 14;
     }
   }
 
@@ -79,7 +79,7 @@ export class BaseMenu<T> {
 
   private setupInteractionCollector() {
     const startTime = Date.now();
-    const maxDuration = Time.Minute * 10;
+    const maxDuration = Time.Minute * 14;
 
     this.collector = new InteractionCollector(this.message.client, {
       message: this.message,

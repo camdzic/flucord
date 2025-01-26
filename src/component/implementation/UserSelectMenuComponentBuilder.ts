@@ -33,10 +33,11 @@ export class UserSelectMenuComponentBuilder extends UserSelectMenuBuilder {
 
     this.setCustomId(customId);
 
-    if (executionThreshold > Time.Minute * 10) {
-      executionThreshold = Time.Minute * 10;
+    if (executionThreshold > Time.Minute * 14) {
+      executionThreshold = Time.Minute * 14;
     }
 
+    const timeoutStartTime = Date.now();
     const timeout = setTimeout(() => {
       if (expiredExecute) {
         expiredExecute(customId);
@@ -52,6 +53,7 @@ export class UserSelectMenuComponentBuilder extends UserSelectMenuBuilder {
       executionThreshold,
       renewOnInteract,
       timeout,
+      timeoutCreatedAt: timeoutStartTime,
       execute,
       expiredExecute
     });

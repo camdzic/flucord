@@ -10,12 +10,12 @@ import type { BaseGuard, BaseGuardTypeMap } from "../guard/BaseGuard";
 import type { Flucord } from "../lib/Flucord";
 
 export type BaseTriggerTypeMap = {
-  button: ButtonInteraction<"cached">;
-  stringSelectMenu: StringSelectMenuInteraction<"cached">;
-  channelSelectMenu: ChannelSelectMenuInteraction<"cached">;
-  roleSelectMenu: RoleSelectMenuInteraction<"cached">;
-  mentionableSelectMenu: MentionableSelectMenuInteraction<"cached">;
-  userSelectMenu: UserSelectMenuInteraction<"cached">;
+  button: ButtonInteraction;
+  stringSelectMenu: StringSelectMenuInteraction;
+  channelSelectMenu: ChannelSelectMenuInteraction;
+  roleSelectMenu: RoleSelectMenuInteraction;
+  mentionableSelectMenu: MentionableSelectMenuInteraction;
+  userSelectMenu: UserSelectMenuInteraction;
 };
 
 type BaseTriggerOptions<T extends keyof BaseTriggerTypeMap> = {

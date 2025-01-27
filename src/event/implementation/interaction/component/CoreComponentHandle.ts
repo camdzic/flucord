@@ -1,5 +1,6 @@
 import {
   type ButtonInteraction,
+  type CacheType,
   type ChannelSelectMenuInteraction,
   DiscordAPIError,
   type Interaction,
@@ -23,7 +24,7 @@ export class CoreComponentHandle extends BaseEvent<"interactionCreate"> {
     });
   }
 
-  async execute(interaction: Interaction) {
+  async execute(interaction: Interaction<CacheType>) {
     if (interaction.isButton()) {
       await this.handleComponent(interaction, "button");
     } else if (interaction.isStringSelectMenu()) {

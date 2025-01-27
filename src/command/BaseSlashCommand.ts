@@ -1,6 +1,7 @@
 import type {
   ApplicationCommandOptionData,
   AutocompleteInteraction,
+  CacheType,
   ChatInputCommandInteraction,
   PermissionResolvable
 } from "discord.js";
@@ -51,11 +52,15 @@ export abstract class BaseSlashCommand {
     this.guildPlusUser = guildPlusUser;
   }
 
-  abstract execute(interaction: ChatInputCommandInteraction): unknown;
+  abstract execute(
+    interaction: ChatInputCommandInteraction<CacheType>
+  ): unknown;
 
-  //biome-ignore lint/correctness/noUnusedVariables:
-  //biome-ignore lint/correctness/noUnusedFunctionParameters:
-  autocompleteExecute?(interaction: AutocompleteInteraction): unknown {
+  autocompleteExecute?(
+    //biome-ignore lint/correctness/noUnusedVariables:
+    //biome-ignore lint/correctness/noUnusedFunctionParameters:
+    interaction: AutocompleteInteraction<CacheType>
+  ): unknown {
     return null;
   }
 }

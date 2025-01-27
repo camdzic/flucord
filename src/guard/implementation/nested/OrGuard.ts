@@ -1,5 +1,6 @@
 import type {
   ButtonInteraction,
+  CacheType,
   ChannelSelectMenuInteraction,
   ChatInputCommandInteraction,
   MentionableSelectMenuInteraction,
@@ -25,15 +26,15 @@ export class OrGuard extends BaseGuard<"any"> {
 
   execute(
     interaction:
-      | ChatInputCommandInteraction
-      | MessageContextMenuCommandInteraction
-      | UserContextMenuCommandInteraction
-      | ButtonInteraction<"cached">
-      | StringSelectMenuInteraction<"cached">
-      | ChannelSelectMenuInteraction<"cached">
-      | RoleSelectMenuInteraction<"cached">
-      | MentionableSelectMenuInteraction<"cached">
-      | UserSelectMenuInteraction<"cached">
+      | ChatInputCommandInteraction<CacheType>
+      | MessageContextMenuCommandInteraction<CacheType>
+      | UserContextMenuCommandInteraction<CacheType>
+      | ButtonInteraction<CacheType>
+      | StringSelectMenuInteraction<CacheType>
+      | ChannelSelectMenuInteraction<CacheType>
+      | RoleSelectMenuInteraction<CacheType>
+      | MentionableSelectMenuInteraction<CacheType>
+      | UserSelectMenuInteraction<CacheType>
   ) {
     const allowedGuards = this.guards.filter(g =>
       this.isSpecificGuard(g, this.getInteractionType(interaction))
@@ -65,12 +66,12 @@ export class OrGuard extends BaseGuard<"any"> {
       | ChatInputCommandInteraction
       | MessageContextMenuCommandInteraction
       | UserContextMenuCommandInteraction
-      | ButtonInteraction<"cached">
-      | StringSelectMenuInteraction<"cached">
-      | ChannelSelectMenuInteraction<"cached">
-      | RoleSelectMenuInteraction<"cached">
-      | MentionableSelectMenuInteraction<"cached">
-      | UserSelectMenuInteraction<"cached">
+      | ButtonInteraction
+      | StringSelectMenuInteraction
+      | ChannelSelectMenuInteraction
+      | RoleSelectMenuInteraction
+      | MentionableSelectMenuInteraction
+      | UserSelectMenuInteraction
   ): keyof BaseGuardTypeMap {
     if (interaction.isChatInputCommand()) return "slashCommand";
     if (interaction.isMessageContextMenuCommand())

@@ -21,8 +21,27 @@ import { BaseTrigger, type BaseTriggerTypeMap } from "../trigger/BaseTrigger";
 import { Config } from "../utility/Config";
 import { EmbedBuilder } from "../utility/EmbedBuilder";
 import { Logger } from "../utility/Logger";
+import type { timeZonesNames } from "../utility/constants/TimeZoneName";
+
+//biome-ignore format:
+type TimeZone = typeof timeZonesNames[number];
+
+type FlucordOptions = {
+  defaultTimezone?: TimeZone;
+  eventsDir?: string;
+  commandsDir?: string;
+  triggersDir?: string;
+  cronsDir?: string;
+  djsClientOptions: ClientOptions;
+};
 
 export class Flucord {
+  readonly defaultTimezone: TimeZone;
+  private readonly eventsDir: string;
+  private readonly commandsDir: string;
+  private readonly triggersDir: string;
+  private readonly cronsDir: string;
+
   readonly client: Client;
 
   readonly settings: Config;
@@ -30,7 +49,7 @@ export class Flucord {
   readonly logger: Logger;
   embeds: EmbedBuilder;
 
-  events: BaseEvent<keyof ClientEvents>[] = [
+  private readonly events: BaseEvent<keyof ClientEvents>[] = [
     new CoreClientReadyEvent(this),
     new CoreContextMenuCommandHandle(this),
     new CoreSlashCommandHandle(this),
@@ -44,8 +63,21 @@ export class Flucord {
   triggers: BaseTrigger<keyof BaseTriggerTypeMap>[] = [];
   components: BaseComponent<keyof BaseComponentTypeMap>[] = [];
 
-  constructor(options: ClientOptions) {
-    this.client = new Client(options);
+  constructor({
+    defaultTimezone = "Europe/Sarajevo",
+    eventsDir = "events",
+    commandsDir = "commands",
+    triggersDir = "triggers",
+    cronsDir = "crons",
+    djsClientOptions
+  }: FlucordOptions) {
+    this.defaultTimezone = defaultTimezone;
+    this.eventsDir = eventsDir;
+    this.commandsDir = commandsDir;
+    this.triggersDir = triggersDir;
+    this.cronsDir = cronsDir;
+
+    this.client = new Client(djsClientOptions);
 
     this.settings = new Config("config/settings.json", {
       token: "your-token-here",
@@ -91,7 +123,7 @@ export class Flucord {
   }
 
   private async loadEvents() {
-    const events = await this.loadFiles("events");
+    const events = await this.loadFiles(this.eventsDir);
     const baseEvents = [
       ...events.filter(event => event instanceof BaseEvent),
       ...this.events
@@ -108,7 +140,7 @@ export class Flucord {
   }
 
   private async loadCommands() {
-    const commands = await this.loadFiles("commands");
+    const commands = await this.loadFiles(this.commandsDir);
 
     this.slashCommands = [
       ...commands.filter(command => command instanceof BaseSlashCommand)
@@ -123,7 +155,7 @@ export class Flucord {
   }
 
   private async loadTriggers() {
-    const triggers = await this.loadFiles("triggers");
+    const triggers = await this.loadFiles(this.triggersDir);
 
     this.triggers = [
       ...triggers.filter(trigger => trigger instanceof BaseTrigger)
@@ -133,7 +165,7 @@ export class Flucord {
   }
 
   private async loadCrons() {
-    const crons = await this.loadFiles("crons");
+    const crons = await this.loadFiles(this.cronsDir);
     const baseCrons = crons.filter(cron => cron instanceof BaseCron);
 
     for (const cron of baseCrons) {

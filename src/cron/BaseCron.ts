@@ -18,7 +18,7 @@ export abstract class BaseCron<T extends string> {
 
   constructor(
     flucord: Flucord,
-    { format, timezone = "Europe/Sarajevo" }: BaseCronOptions<T>
+    { format, timezone = flucord.defaultTimezone }: BaseCronOptions<T>
   ) {
     this.flucord = flucord;
 

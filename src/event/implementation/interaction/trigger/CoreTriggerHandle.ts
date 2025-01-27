@@ -1,5 +1,6 @@
 import {
   type ButtonInteraction,
+  type CacheType,
   type ChannelSelectMenuInteraction,
   DiscordAPIError,
   type Interaction,
@@ -23,9 +24,7 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
     });
   }
 
-  async execute(interaction: Interaction) {
-    if (!interaction.inCachedGuild()) return;
-
+  async execute(interaction: Interaction<CacheType>) {
     if (interaction.isButton()) {
       await this.handleTrigger(interaction, "button");
     } else if (interaction.isStringSelectMenu()) {
@@ -43,12 +42,12 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
 
   private async handleTrigger(
     interaction:
-      | ButtonInteraction<"cached">
-      | StringSelectMenuInteraction<"cached">
-      | ChannelSelectMenuInteraction<"cached">
-      | RoleSelectMenuInteraction<"cached">
-      | MentionableSelectMenuInteraction<"cached">
-      | UserSelectMenuInteraction<"cached">,
+      | ButtonInteraction
+      | StringSelectMenuInteraction
+      | ChannelSelectMenuInteraction
+      | RoleSelectMenuInteraction
+      | MentionableSelectMenuInteraction
+      | UserSelectMenuInteraction,
     type: keyof BaseTriggerTypeMap
   ) {
     const trigger = this.flucord.triggers

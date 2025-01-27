@@ -1,4 +1,9 @@
-import type { CacheType, ChatInputCommandInteraction } from "discord.js";
+import type {
+  CacheType,
+  ChatInputCommandInteraction,
+  MessageContextMenuCommandInteraction,
+  UserContextMenuCommandInteraction
+} from "discord.js";
 import { CooldownGuardException } from "../../exception/CooldownGuardException";
 import { GuardExecutionFailException } from "../../exception/GuardExecutionFailException";
 import { Time } from "../../utility/constants/Time";
@@ -23,7 +28,12 @@ export class CooldownGuard extends BaseGuard<
     this.cooldownTime = cooldownTime;
   }
 
-  execute(interaction: ChatInputCommandInteraction<CacheType>) {
+  execute(
+    interaction:
+      | ChatInputCommandInteraction<CacheType>
+      | UserContextMenuCommandInteraction<CacheType>
+      | MessageContextMenuCommandInteraction<CacheType>
+  ) {
     if (!interaction.inCachedGuild()) {
       throw new GuardExecutionFailException(
         "While executing CooldownGuard, guild was not found"

@@ -1,5 +1,6 @@
 import type {
   ButtonInteraction,
+  CacheType,
   ChannelSelectMenuInteraction,
   ChatInputCommandInteraction,
   MentionableSelectMenuInteraction,
@@ -26,15 +27,15 @@ export class ChannelGuard extends BaseGuard<"any"> {
 
   execute(
     interaction:
-      | ChatInputCommandInteraction
-      | MessageContextMenuCommandInteraction
-      | UserContextMenuCommandInteraction
-      | ButtonInteraction<"cached">
-      | StringSelectMenuInteraction<"cached">
-      | ChannelSelectMenuInteraction<"cached">
-      | RoleSelectMenuInteraction<"cached">
-      | MentionableSelectMenuInteraction<"cached">
-      | UserSelectMenuInteraction<"cached">
+      | ChatInputCommandInteraction<CacheType>
+      | MessageContextMenuCommandInteraction<CacheType>
+      | UserContextMenuCommandInteraction<CacheType>
+      | ButtonInteraction<CacheType>
+      | StringSelectMenuInteraction<CacheType>
+      | ChannelSelectMenuInteraction<CacheType>
+      | RoleSelectMenuInteraction<CacheType>
+      | MentionableSelectMenuInteraction<CacheType>
+      | UserSelectMenuInteraction<CacheType>
   ) {
     if (!interaction.channel) {
       throw new GuardExecutionFailException(

@@ -1,4 +1,5 @@
 import {
+  type CacheType,
   DiscordAPIError,
   type Interaction,
   type MessageContextMenuCommandInteraction,
@@ -20,7 +21,7 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
     });
   }
 
-  async execute(interaction: Interaction) {
+  async execute(interaction: Interaction<CacheType>) {
     if (interaction.isMessageContextMenuCommand()) {
       await this.handleContextMenuCommand(
         interaction,

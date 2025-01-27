@@ -1,4 +1,9 @@
-import { DiscordAPIError, type Interaction, MessageFlags } from "discord.js";
+import {
+  type CacheType,
+  DiscordAPIError,
+  type Interaction,
+  MessageFlags
+} from "discord.js";
 import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
 import { GuardException } from "../../../../exception/GuardException";
 import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
@@ -13,7 +18,7 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
     });
   }
 
-  async execute(interaction: Interaction) {
+  async execute(interaction: Interaction<CacheType>) {
     if (interaction.isChatInputCommand()) {
       const slashCommand = this.flucord.slashCommands.find(
         command => command.name === interaction.commandName

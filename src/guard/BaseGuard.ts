@@ -15,22 +15,22 @@ export type BaseGuardTypeMap = {
   slashCommand: ChatInputCommandInteraction;
   messageContextMenuCommand: MessageContextMenuCommandInteraction;
   userContextMenuCommand: UserContextMenuCommandInteraction;
-  button: ButtonInteraction<"cached">;
-  stringSelectMenu: StringSelectMenuInteraction<"cached">;
-  channelSelectMenu: ChannelSelectMenuInteraction<"cached">;
-  roleSelectMenu: RoleSelectMenuInteraction<"cached">;
-  mentionableSelectMenu: MentionableSelectMenuInteraction<"cached">;
-  userSelectMenu: UserSelectMenuInteraction<"cached">;
+  button: ButtonInteraction;
+  stringSelectMenu: StringSelectMenuInteraction;
+  channelSelectMenu: ChannelSelectMenuInteraction;
+  roleSelectMenu: RoleSelectMenuInteraction;
+  mentionableSelectMenu: MentionableSelectMenuInteraction;
+  userSelectMenu: UserSelectMenuInteraction;
   any:
     | ChatInputCommandInteraction
     | MessageContextMenuCommandInteraction
     | UserContextMenuCommandInteraction
-    | ButtonInteraction<"cached">
-    | StringSelectMenuInteraction<"cached">
-    | ChannelSelectMenuInteraction<"cached">
-    | RoleSelectMenuInteraction<"cached">
-    | MentionableSelectMenuInteraction<"cached">
-    | UserSelectMenuInteraction<"cached">;
+    | ButtonInteraction
+    | StringSelectMenuInteraction
+    | ChannelSelectMenuInteraction
+    | RoleSelectMenuInteraction
+    | MentionableSelectMenuInteraction
+    | UserSelectMenuInteraction;
 };
 
 type BaseGuardOptions<T extends keyof BaseGuardTypeMap> = {

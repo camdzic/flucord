@@ -16,7 +16,7 @@ type BaseContextMenuCommandOptions<
 > = {
   name: string;
   type: T;
-  guildPlusUser: boolean;
+  guildPlusUser?: boolean;
   guards?: BaseGuard<keyof BaseGuardTypeMap>[];
   permissions?: PermissionResolvable[];
 };
@@ -28,18 +28,18 @@ export abstract class BaseContextMenuCommand<
 
   readonly name: string;
   readonly type: T;
-  guildPlusUser: boolean;
-  readonly guards?: BaseGuard<keyof BaseGuardTypeMap>[] = [];
-  readonly permissions?: PermissionResolvable[] = [];
+  readonly guildPlusUser?: boolean;
+  readonly guards?: BaseGuard<keyof BaseGuardTypeMap>[];
+  readonly permissions?: PermissionResolvable[];
 
   constructor(
     flucord: Flucord,
     {
       name,
       type,
-      guildPlusUser,
-      guards,
-      permissions
+      guildPlusUser = false,
+      guards = [],
+      permissions = []
     }: BaseContextMenuCommandOptions<T>
   ) {
     this.flucord = flucord;

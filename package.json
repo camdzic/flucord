@@ -21,7 +21,7 @@
     "semantic-release": "^24.2.1"
   },
   "peerDependencies": {
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "dependencies": {
     "colorette": "^2.0.20",

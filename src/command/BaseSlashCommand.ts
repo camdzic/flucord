@@ -12,7 +12,7 @@ type BaseSlashCommandOptions = {
   name: string;
   description: string;
   category: string;
-  guildPlusUser: boolean;
+  guildPlusUser?: boolean;
   options?: ApplicationCommandOptionData[];
   guards?: BaseGuard<keyof BaseGuardTypeMap>[];
   permissions?: PermissionResolvable[];
@@ -24,10 +24,10 @@ export abstract class BaseSlashCommand {
   readonly name: string;
   readonly description: string;
   readonly category: string;
-  readonly guildPlusUser: boolean;
-  readonly options?: ApplicationCommandOptionData[] = [];
-  readonly guards?: BaseGuard<keyof BaseGuardTypeMap>[] = [];
-  readonly permissions?: PermissionResolvable[] = [];
+  readonly guildPlusUser?: boolean;
+  readonly options?: ApplicationCommandOptionData[];
+  readonly guards?: BaseGuard<keyof BaseGuardTypeMap>[];
+  readonly permissions?: PermissionResolvable[];
 
   constructor(
     flucord: Flucord,
@@ -35,10 +35,10 @@ export abstract class BaseSlashCommand {
       name,
       description,
       category,
-      options,
-      guards,
-      permissions,
-      guildPlusUser
+      guildPlusUser = false,
+      options = [],
+      guards = [],
+      permissions = []
     }: BaseSlashCommandOptions
   ) {
     this.flucord = flucord;

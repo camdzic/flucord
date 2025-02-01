@@ -11,7 +11,6 @@ export * from "./guard/implementation/RoleGuard";
 export * from "./guard/implementation/ChannelGuard";
 export * from "./guard/implementation/NSFWChannelGuard";
 export * from "./guard/implementation/ServerOwnerGuard";
-export * from "./guard/implementation/CooldownGuard";
 export * from "./guard/implementation/nested/AndGuard";
 export * from "./guard/implementation/nested/OrGuard";
 

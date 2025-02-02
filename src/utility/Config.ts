@@ -64,21 +64,7 @@ export class Config {
   getTypedEntry<T>(entry: string) {
     const value = this.getEntry(entry);
 
-    if (
-      value instanceof Object &&
-      !Array.isArray(value) &&
-      typeof value === typeof ({} as T)
-    ) {
-      return value as T;
-    }
-
-    if (typeof value === typeof (null as T)) {
-      return value as T;
-    }
-
-    throw new ConfigException(
-      `Expected ${typeof value} at "${entry}" and not ${typeof (null as T)}`
-    );
+    return value as T;
   }
 
   getString(entry: string) {

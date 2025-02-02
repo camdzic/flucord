@@ -45,7 +45,7 @@ export class AndGuard extends BaseGuard<"any"> {
         await guard.execute(interaction);
       } catch {
         throw new GuardException(
-          `Guard ${guard.constructor.name} failed in AndGuard`
+          `Guard ${guard.constructor.name} failed in ${this.constructor.name}`
         );
       }
     }

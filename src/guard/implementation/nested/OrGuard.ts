@@ -50,7 +50,9 @@ export class OrGuard extends BaseGuard<"any"> {
     });
 
     if (results.length && !results.some(result => result)) {
-      throw new GuardException("None of the guards in OrGuard passed");
+      throw new GuardException(
+        `None of the guards in ${this.constructor.name} passed`
+      );
     }
   }
 

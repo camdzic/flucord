@@ -36,7 +36,7 @@ export class NSFWChannelGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.channel) {
       throw new GuardExecutionFailException(
-        "While executing NSFWChannelGuard, channel was not found"
+        `While executing ${this.constructor.name}, channel was not found`
       );
     }
 
@@ -44,7 +44,7 @@ export class NSFWChannelGuard extends BaseGuard<"any"> {
       interaction.channel.type === ChannelType.GuildText &&
       !interaction.channel.nsfw
     ) {
-      throw new GuardException("Channel is not NSFW");
+      throw new GuardException("You need to be in a NSFW channel");
     }
   }
 }

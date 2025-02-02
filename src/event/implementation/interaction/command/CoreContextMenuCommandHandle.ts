@@ -81,7 +81,9 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
       if (failedGuards.length) {
         return interaction.reply({
           embeds: [
-            this.flucord.embeds.error("There was an error executing the guards")
+            this.flucord.embeds.error(
+              `Strange things happened while execution:\n\n${failedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
+            )
           ],
           flags: MessageFlags.Ephemeral
         });
@@ -96,7 +98,7 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
         return interaction.reply({
           embeds: [
             this.flucord.embeds.error(
-              "You cannot use this context menu command due to a lack of guards"
+              `In order to use this command, you need to meet the following requirements:\n\n${disallowedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
             )
           ],
           flags: MessageFlags.Ephemeral

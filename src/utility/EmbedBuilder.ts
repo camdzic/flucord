@@ -13,23 +13,25 @@ export class EmbedBuilder {
 
   primary() {
     return new DJSEmbedBuilder().setColor(
-      this.flucord.settings.getString("colors.primary") as ColorResolvable
+      this.flucord.settings.getTypedEntry<ColorResolvable>("colors.primary")
     );
   }
 
   success(message: string) {
     return new DJSEmbedBuilder()
       .setColor(
-        this.flucord.settings.getString("colors.success") as ColorResolvable
+        this.flucord.settings.getTypedEntry<ColorResolvable>("colors.success")
       )
-      .setDescription(`✅ **${message}**`);
+      .setTitle("Success!")
+      .setDescription(`✅ ${message}`);
   }
 
   error(message: string) {
     return new DJSEmbedBuilder()
       .setColor(
-        this.flucord.settings.getString("colors.error") as ColorResolvable
+        this.flucord.settings.getTypedEntry<ColorResolvable>("colors.error")
       )
-      .setDescription(`❌ **${message}**`);
+      .setTitle("Error!")
+      .setDescription(`❌ ${message}`);
   }
 }

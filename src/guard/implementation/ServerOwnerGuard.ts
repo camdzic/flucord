@@ -35,12 +35,12 @@ export class ServerOwnerGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.inCachedGuild()) {
       throw new GuardExecutionFailException(
-        "While executing ServerOwnerGuard, guild was not found"
+        `While executing ${this.constructor.name}, guild was not found`
       );
     }
 
     if (interaction.guild.ownerId !== interaction.user.id) {
-      throw new GuardException("You are not the owner of the server");
+      throw new GuardException("You need to be the server owner");
     }
   }
 }

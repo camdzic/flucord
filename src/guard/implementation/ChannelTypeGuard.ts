@@ -40,12 +40,12 @@ export class ChannelTypeGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.channel) {
       throw new GuardExecutionFailException(
-        "While executing ChannelTypeGuard, channel was not found"
+        `While executing ${this.constructor.name}, channel was not found`
       );
     }
 
     if (!this.channelTypes.includes(interaction.channel.type)) {
-      throw new GuardException("Invalid channel type");
+      throw new GuardException("You need to be in a specific channel type");
     }
   }
 }

@@ -41,7 +41,7 @@ export class RoleGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.inCachedGuild()) {
       throw new GuardExecutionFailException(
-        "While executing RoleGuard, guild was not found"
+        `While executing ${this.constructor.name}, guild was not found`
       );
     }
 
@@ -50,11 +50,11 @@ export class RoleGuard extends BaseGuard<"any"> {
     );
 
     if (this.requireAllRoles && !hasRoles) {
-      throw new GuardException("You do not have the required roles");
+      throw new GuardException("You need all the required roles");
     }
 
     if (!this.requireAllRoles && !hasRoles) {
-      throw new GuardException("You do not have the required roles");
+      throw new GuardException("You need at least one of the required roles");
     }
   }
 }

@@ -28,9 +28,9 @@ export abstract class BaseContextMenuCommand<
 
   readonly name: string;
   readonly type: T;
-  readonly guildPlusUser?: boolean;
-  readonly guards?: BaseGuard<keyof BaseGuardTypeMap>[];
-  readonly permissions?: PermissionResolvable[];
+  readonly guildPlusUser: boolean;
+  readonly guards: BaseGuard<keyof BaseGuardTypeMap>[];
+  readonly permissions: PermissionResolvable[];
 
   constructor(
     flucord: Flucord,

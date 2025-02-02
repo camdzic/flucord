@@ -28,7 +28,7 @@ export class BaseMenu<T> {
   private readonly ephemeral: boolean;
 
   private page: BaseMenuPage<T>;
-  private history: BaseMenuPage<T>[] = [];
+  private history: BaseMenuPage<T>[];
 
   private interaction: InteractionResponse;
   private message: Message;
@@ -47,6 +47,8 @@ export class BaseMenu<T> {
     this.state = state;
     this.threshold = threshold;
     this.ephemeral = ephemeral;
+
+    this.history = [];
 
     if (this.threshold > Time.Minute * 14) {
       this.threshold = Time.Minute * 14;

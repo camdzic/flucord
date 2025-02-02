@@ -30,8 +30,8 @@ export abstract class BaseTrigger<T extends keyof BaseTriggerTypeMap> {
 
   readonly id: string;
   readonly type: T;
-  readonly startsWith?: boolean;
-  readonly guards?: BaseGuard<keyof BaseGuardTypeMap>[];
+  readonly startsWith: boolean;
+  readonly guards: BaseGuard<keyof BaseGuardTypeMap>[];
 
   constructor(
     flucord: Flucord,

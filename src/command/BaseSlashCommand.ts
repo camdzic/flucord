@@ -24,10 +24,10 @@ export abstract class BaseSlashCommand {
   readonly name: string;
   readonly description: string;
   readonly category: string;
-  readonly guildPlusUser?: boolean;
-  readonly options?: ApplicationCommandOptionData[];
-  readonly guards?: BaseGuard<keyof BaseGuardTypeMap>[];
-  readonly permissions?: PermissionResolvable[];
+  readonly guildPlusUser: boolean;
+  readonly options: ApplicationCommandOptionData[];
+  readonly guards: BaseGuard<keyof BaseGuardTypeMap>[];
+  readonly permissions: PermissionResolvable[];
 
   constructor(
     flucord: Flucord,

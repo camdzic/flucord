@@ -2,176 +2,174 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { ConfigException } from "../exception/ConfigException";
 
-type NestedObject = {
-  [key: string]: NestedObject | unknown;
+type NestedConfig = {
+  [key: string]: NestedConfig | unknown;
 };
 
 export class Config {
-  private readonly filePath: string;
+  private readonly configPath: string;
 
-  private data: NestedObject;
-  private registeredKeys: Set<string>;
+  private configData: NestedConfig;
 
-  constructor(filePath: string, defaults: Record<string, unknown> = {}) {
-    this.filePath = filePath;
+  constructor(configPath: string, defaults: Record<string, unknown> = {}) {
+    this.configPath = configPath;
 
-    this.data = {};
-    this.registeredKeys = new Set();
+    this.configData = {};
 
-    this.ensureFileExists();
-    this.loadData();
-
-    this.registerDefaults(defaults);
-    this.cleanUnregisteredEntries();
+    this.ensureConfigFileExists();
+    this.loadConfigData();
+    this.applyDefaultValues(defaults);
   }
 
-  private registerDefaults(defaults: Record<string, unknown>) {
-    for (const [entry, defaultValue] of Object.entries(defaults)) {
-      this.registerEntry(entry, defaultValue);
+  private ensureConfigFileExists() {
+    const directory = path.dirname(this.configPath);
+
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
+
+    if (!fs.existsSync(this.configPath)) {
+      fs.writeFileSync(this.configPath, JSON.stringify({}, null, 2));
     }
   }
 
-  private cleanUnregisteredEntries() {
-    for (const key in this.data) {
-      if (!this.registeredKeys.has(key)) {
-        delete this.data[key];
+  private loadConfigData() {
+    try {
+      const fileContent = fs.readFileSync(this.configPath, "utf-8");
+
+      this.configData = JSON.parse(fileContent);
+    } catch {
+      this.configData = {};
+    }
+  }
+
+  private persistConfigData() {
+    fs.writeFileSync(this.configPath, JSON.stringify(this.configData, null, 2));
+  }
+
+  private applyDefaultValues(defaults: Record<string, unknown>) {
+    const traverse = (obj: NestedConfig, currentPath = "") => {
+      for (const key in obj) {
+        const childPath = currentPath ? `${currentPath}.${key}` : key;
+        const value = obj[key];
+
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          !Array.isArray(value)
+        ) {
+          traverse(value as NestedConfig, childPath);
+        } else {
+          this.registerPath(childPath, value);
+        }
       }
-    }
+    };
 
-    this.saveData();
+    traverse(defaults);
   }
 
-  registerEntry(entry: string, defaultValue: unknown = null) {
-    const pathSegments = entry.split(".");
-    const key = pathSegments.pop();
-    let current = this.data;
+  registerPath(configPath: string, defaultValue: unknown = null) {
+    const pathSegments = configPath.split(".");
+    const finalKey = pathSegments.pop();
+    let currentLevel = this.configData;
 
     for (const segment of pathSegments) {
-      if (!(segment in current)) {
-        current[segment] = {} as NestedObject;
+      if (!currentLevel[segment] || typeof currentLevel[segment] !== "object") {
+        currentLevel[segment] = {};
       }
-      current = current[segment] as NestedObject;
+      currentLevel = currentLevel[segment] as NestedConfig;
     }
 
-    if (key && (current[key] === undefined || current[key] === null)) {
-      current[key] = defaultValue;
-      this.saveData();
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: <explanation>
+    if (finalKey && !currentLevel.hasOwnProperty(finalKey)) {
+      currentLevel[finalKey] = defaultValue;
+      this.persistConfigData();
     }
-
-    this.registeredKeys.add(entry);
   }
 
-  getTypedEntry<T>(entry: string) {
-    const value = this.getEntry(entry);
+  private isNestedObject(value: unknown): value is NestedConfig {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
+
+  private retrieveValue(path: string) {
+    return path.split(".").reduce<unknown>((currentNode, segment) => {
+      if (!this.isNestedObject(currentNode)) {
+        throw new ConfigException(`Invalid path '${path}'`);
+      }
+
+      return currentNode[segment];
+    }, this.configData);
+  }
+
+  private prettyTypeof(value: unknown) {
+    if (Array.isArray(value)) {
+      return "array";
+    }
+
+    return typeof value;
+  }
+
+  getValue<T>(path: string) {
+    return this.retrieveValue(path) as T;
+  }
+
+  getString(path: string) {
+    const value = this.retrieveValue(path);
+
+    if (typeof value !== "string") {
+      throw new ConfigException(
+        `Expected ${this.prettyTypeof(value)} at '${path}' and not a string`
+      );
+    }
+
+    return value;
+  }
+
+  getNumber(path: string) {
+    const value = this.retrieveValue(path);
+
+    if (typeof value !== "number") {
+      throw new ConfigException(
+        `Expected ${this.prettyTypeof(value)} at '${path}' and not a number`
+      );
+    }
+
+    return value;
+  }
+
+  getBoolean(path: string) {
+    const value = this.retrieveValue(path);
+
+    if (typeof value !== "boolean") {
+      throw new ConfigException(
+        `Expected ${this.prettyTypeof(value)} at '${path}' and not a boolean`
+      );
+    }
+
+    return value;
+  }
+
+  getObject<T extends NestedConfig>(path: string) {
+    const value = this.retrieveValue(path);
+
+    if (!this.isNestedObject(value)) {
+      throw new ConfigException(
+        `Expected ${this.prettyTypeof(value)} at '${path}' and not an object`
+      );
+    }
 
     return value as T;
   }
 
-  getString(entry: string) {
-    const value = this.getEntry(entry);
-
-    if (typeof value !== "string") {
-      throw new ConfigException(
-        `Expected ${typeof value} at "${entry}" and not string`
-      );
-    }
-
-    return value;
-  }
-
-  getBoolean(entry: string) {
-    const value = this.getEntry(entry);
-
-    if (typeof value !== "boolean") {
-      throw new ConfigException(
-        `Expected ${typeof value} at "${entry}" and not boolean`
-      );
-    }
-
-    return value;
-  }
-
-  getNumber(entry: string) {
-    const value = this.getEntry(entry);
-
-    if (typeof value !== "number") {
-      throw new ConfigException(
-        `Expected ${typeof value} at "${entry}" and not number`
-      );
-    }
-
-    return value;
-  }
-
-  getObject(entry: string) {
-    const value = this.getEntry(entry);
-
-    if (typeof value !== "object" || Array.isArray(value) || value === null) {
-      throw new ConfigException(
-        `Expected ${typeof value} at "${entry}" and not object`
-      );
-    }
-
-    return value;
-  }
-
-  getArray(entry: string) {
-    const value = this.getEntry(entry);
+  getArray<T>(path: string): T[] {
+    const value = this.retrieveValue(path);
 
     if (!Array.isArray(value)) {
       throw new ConfigException(
-        `Expected ${typeof value} at "${entry}" and not array`
+        `Expected ${this.prettyTypeof(value)} at '${path}' and not an array`
       );
     }
 
-    return value;
-  }
-
-  getNullOrUndefined(entry: string) {
-    const value = this.getEntry(entry);
-
-    if (value !== null && value !== undefined) {
-      throw new ConfigException(
-        `Expected ${typeof value} at "${entry}" and not null or undefined`
-      );
-    }
-
-    return value;
-  }
-
-  private ensureFileExists() {
-    const dir = path.dirname(this.filePath);
-
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, JSON.stringify({}, null, 2));
-    }
-  }
-
-  private loadData() {
-    try {
-      this.data = JSON.parse(fs.readFileSync(this.filePath, "utf-8"));
-    } catch {
-      this.data = {};
-    }
-  }
-
-  private saveData() {
-    fs.writeFileSync(this.filePath, JSON.stringify(this.data, null, 2));
-  }
-
-  private getEntry(entry: string) {
-    return entry.split(".").reduce<unknown>((current, segment) => {
-      if (
-        typeof current === "object" &&
-        current !== null &&
-        segment in current
-      ) {
-        return (current as NestedObject)[segment];
-      }
-
-      throw new ConfigException(`Entry "${entry}" not found`);
-    }, this.data);
+    return value as T[];
   }
 }

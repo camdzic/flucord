@@ -81,16 +81,12 @@ export class Flucord {
 
     this.settings = new Config("config/settings.json", {
       token: "your-token-here",
-      commands: {
-        enabled: true,
-        global: true,
-        guild_id: null
-      },
-      colors: {
-        primary: "#5865f2",
-        error: "#ed4245",
-        success: "#57f287"
-      }
+      "commands.enabled": true,
+      "commands.global": true,
+      "commands.guild_id": null,
+      "colors.primary": "#5865f2",
+      "colors.error": "#ed4245",
+      "colors.success": "#57f287"
     });
 
     this.logger = new Logger(this);

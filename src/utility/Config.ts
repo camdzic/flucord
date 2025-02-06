@@ -48,24 +48,9 @@ export class Config {
   }
 
   private applyDefaultValues(defaults: Record<string, unknown>) {
-    const traverse = (obj: NestedConfig, currentPath = "") => {
-      for (const key in obj) {
-        const childPath = currentPath ? `${currentPath}.${key}` : key;
-        const value = obj[key];
-
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          !Array.isArray(value)
-        ) {
-          traverse(value as NestedConfig, childPath);
-        } else {
-          this.registerPath(childPath, value);
-        }
-      }
-    };
-
-    traverse(defaults);
+    for (const [key, value] of Object.entries(defaults)) {
+      this.registerPath(key, value);
+    }
   }
 
   registerPath(configPath: string, defaultValue: unknown = null) {

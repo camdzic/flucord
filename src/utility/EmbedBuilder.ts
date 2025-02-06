@@ -7,14 +7,22 @@ import type { Flucord } from "../lib/Flucord";
 export class EmbedBuilder {
   protected readonly flucord: Flucord;
 
+  readonly primary: () => DJSEmbedBuilder;
+
   constructor(flucord: Flucord) {
     this.flucord = flucord;
-  }
 
-  primary() {
-    return new DJSEmbedBuilder().setColor(
-      this.flucord.settings.getValue<ColorResolvable>("colors.primary")
-    );
+    this.primary = () => {
+      return new DJSEmbedBuilder().setColor(
+        this.flucord.settings.getValue<ColorResolvable>("colors.primary")
+      );
+    };
+
+    Object.defineProperty(this, "primary", {
+      configurable: false,
+      enumerable: false,
+      writable: false
+    });
   }
 
   success(message: string) {

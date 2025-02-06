@@ -6,14 +6,14 @@ import type { timeZonesNames } from "../utility/constants/TimeZoneName";
 type TimeZone = typeof timeZonesNames[number];
 
 type BaseCronOptions<T extends string> = {
-  format: CRON<T> extends T ? T : never;
+  format: CRON<T> extends never ? never : T;
   timezone?: TimeZone;
 };
 
 export abstract class BaseCron<T extends string> {
   readonly flucord: Flucord;
 
-  readonly format: CRON<T> extends T ? T : never;
+  readonly format: CRON<T> extends never ? never : T;
   readonly timezone: TimeZone;
 
   constructor(

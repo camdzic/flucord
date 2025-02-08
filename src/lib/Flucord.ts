@@ -6,16 +6,11 @@ import {
   type BaseContextMenuCommandTypeMap
 } from "../command/BaseContextMenuCommand";
 import { BaseSlashCommand } from "../command/BaseSlashCommand";
-import type {
-  BaseComponent,
-  BaseComponentTypeMap
-} from "../component/BaseComponent";
 import { BaseCron } from "../cron/BaseCron";
 import { BaseEvent } from "../event/BaseEvent";
 import { CoreClientReadyEvent } from "../event/implementation/client/CoreClientReadyEvent";
 import { CoreContextMenuCommandHandle } from "../event/implementation/interaction/command/CoreContextMenuCommandHandle";
 import { CoreSlashCommandHandle } from "../event/implementation/interaction/command/CoreSlashCommandHandle";
-import { CoreComponentHandle } from "../event/implementation/interaction/component/CoreComponentHandle";
 import { CoreTriggerHandle } from "../event/implementation/interaction/trigger/CoreTriggerHandle";
 import { BaseTrigger, type BaseTriggerTypeMap } from "../trigger/BaseTrigger";
 import { Config } from "../utility/Config";
@@ -53,7 +48,6 @@ export class Flucord {
     new CoreClientReadyEvent(this),
     new CoreContextMenuCommandHandle(this),
     new CoreSlashCommandHandle(this),
-    new CoreComponentHandle(this),
     new CoreTriggerHandle(this)
   ];
   slashCommands: BaseSlashCommand[] = [];
@@ -61,7 +55,6 @@ export class Flucord {
     keyof BaseContextMenuCommandTypeMap
   >[] = [];
   triggers: BaseTrigger<keyof BaseTriggerTypeMap>[] = [];
-  components: BaseComponent<keyof BaseComponentTypeMap>[] = [];
 
   constructor({
     defaultTimezone = "Europe/Sarajevo",

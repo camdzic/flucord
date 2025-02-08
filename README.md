@@ -21,7 +21,6 @@ You can find the wiki and documentation on the [Wiki page](https://github.com/ca
 * Crons
 * Triggers *(static interaction handlers)*
 * Guard System
-* Component Builder System *(dynamic interaction builders)*
 * Config System
 * Built-in utilities
 

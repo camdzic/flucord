@@ -37,7 +37,7 @@ export class Flucord {
   private readonly triggersDir: string;
   private readonly cronsDir: string;
 
-  readonly client: Client;
+  readonly client: Client<true>;
 
   readonly settings: Config;
 

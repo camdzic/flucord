@@ -11,6 +11,7 @@ import {
   type StringSelectMenuInteraction,
   type UserSelectMenuInteraction
 } from "discord.js";
+import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
 import { GuardException } from "../../../../exception/GuardException";
 import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
@@ -66,6 +67,7 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
 
     if (trigger.guards) {
       const failedGuards: any[] = [];
+      const cooldownFailedGuards: any[] = [];
       const disallowedGuards: any[] = [];
       const triggerGuards = trigger.guards.filter(g =>
         this.isSpecificGuard(g, type)
@@ -77,6 +79,8 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
         } catch (error) {
           if (error instanceof GuardExecutionFailException) {
             failedGuards.push(error.message);
+          } else if (error instanceof CooldownGuardException) {
+            cooldownFailedGuards.push(error.message);
           } else if (error instanceof GuardException) {
             disallowedGuards.push(error.message);
           }
@@ -93,11 +97,17 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
           flags: MessageFlags.Ephemeral
         });
       }
+      if (cooldownFailedGuards.length) {
+        return interaction.reply({
+          embeds: [this.flucord.embeds.error(cooldownFailedGuards.join("\n"))],
+          flags: MessageFlags.Ephemeral
+        });
+      }
       if (disallowedGuards.length) {
         return interaction.reply({
           embeds: [
             this.flucord.embeds.error(
-              `In order to use this command, you need to meet the following requirements:\n\n${disallowedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
+              `In order to use this trigger, you need to meet the following requirements:\n\n${disallowedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
             )
           ],
           flags: MessageFlags.Ephemeral

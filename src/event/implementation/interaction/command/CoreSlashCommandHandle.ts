@@ -35,8 +35,8 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
 
       if (slashCommand.guards) {
         const failedGuards: any[] = [];
-        const disallowedGuards: any[] = [];
         const cooldownFailedGuards: any[] = [];
+        const disallowedGuards: any[] = [];
         const commandGuards = slashCommand.guards.filter(g =>
           this.isSpecificGuard(g, "slashCommand")
         );

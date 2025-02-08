@@ -58,8 +58,8 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
 
     if (contextMenuCommand.guards) {
       const failedGuards: any[] = [];
-      const disallowedGuards: any[] = [];
       const cooldownFailedGuards: any[] = [];
+      const disallowedGuards: any[] = [];
       const contextMenuCommandGuards = contextMenuCommand.guards.filter(g =>
         this.isSpecificGuard(g, type)
       );

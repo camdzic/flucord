@@ -5,6 +5,7 @@ import type {
   ChatInputCommandInteraction,
   MentionableSelectMenuInteraction,
   MessageContextMenuCommandInteraction,
+  ModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
   UserContextMenuCommandInteraction,
@@ -38,6 +39,7 @@ export class RoleGuard extends BaseGuard<"any"> {
       | RoleSelectMenuInteraction<CacheType>
       | MentionableSelectMenuInteraction<CacheType>
       | UserSelectMenuInteraction<CacheType>
+      | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.inCachedGuild()) {
       throw new GuardExecutionFailException(

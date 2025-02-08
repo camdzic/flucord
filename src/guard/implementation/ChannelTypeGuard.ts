@@ -6,6 +6,7 @@ import type {
   ChatInputCommandInteraction,
   MentionableSelectMenuInteraction,
   MessageContextMenuCommandInteraction,
+  ModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
   UserContextMenuCommandInteraction,
@@ -37,6 +38,7 @@ export class ChannelTypeGuard extends BaseGuard<"any"> {
       | RoleSelectMenuInteraction<CacheType>
       | MentionableSelectMenuInteraction<CacheType>
       | UserSelectMenuInteraction<CacheType>
+      | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.channel) {
       throw new GuardExecutionFailException(

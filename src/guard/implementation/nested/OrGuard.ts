@@ -5,6 +5,7 @@ import type {
   ChatInputCommandInteraction,
   MentionableSelectMenuInteraction,
   MessageContextMenuCommandInteraction,
+  ModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
   UserContextMenuCommandInteraction,
@@ -35,6 +36,7 @@ export class OrGuard extends BaseGuard<"any"> {
       | RoleSelectMenuInteraction<CacheType>
       | MentionableSelectMenuInteraction<CacheType>
       | UserSelectMenuInteraction<CacheType>
+      | ModalSubmitInteraction<CacheType>
   ) {
     const allowedGuards = this.guards.filter(g =>
       this.isSpecificGuard(g, this.getInteractionType(interaction))
@@ -74,6 +76,7 @@ export class OrGuard extends BaseGuard<"any"> {
       | RoleSelectMenuInteraction
       | MentionableSelectMenuInteraction
       | UserSelectMenuInteraction
+      | ModalSubmitInteraction
   ): keyof BaseGuardTypeMap {
     if (interaction.isChatInputCommand()) return "slashCommand";
     if (interaction.isMessageContextMenuCommand())
@@ -85,6 +88,7 @@ export class OrGuard extends BaseGuard<"any"> {
     if (interaction.isRoleSelectMenu()) return "roleSelectMenu";
     if (interaction.isMentionableSelectMenu()) return "mentionableSelectMenu";
     if (interaction.isUserSelectMenu()) return "userSelectMenu";
+    if (interaction.isModalSubmit()) return "modal";
 
     throw new Error("Unknown interaction type");
   }

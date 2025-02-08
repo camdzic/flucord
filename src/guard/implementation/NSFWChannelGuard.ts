@@ -6,6 +6,7 @@ import {
   type ChatInputCommandInteraction,
   type MentionableSelectMenuInteraction,
   type MessageContextMenuCommandInteraction,
+  type ModalSubmitInteraction,
   type RoleSelectMenuInteraction,
   type StringSelectMenuInteraction,
   type UserContextMenuCommandInteraction,
@@ -33,6 +34,7 @@ export class NSFWChannelGuard extends BaseGuard<"any"> {
       | RoleSelectMenuInteraction<CacheType>
       | MentionableSelectMenuInteraction<CacheType>
       | UserSelectMenuInteraction<CacheType>
+      | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.channel) {
       throw new GuardExecutionFailException(

@@ -6,6 +6,7 @@ import {
   type Interaction,
   type MentionableSelectMenuInteraction,
   MessageFlags,
+  type ModalSubmitInteraction,
   type RoleSelectMenuInteraction,
   type StringSelectMenuInteraction,
   type UserSelectMenuInteraction
@@ -37,6 +38,8 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
       await this.handleTrigger(interaction, "mentionableSelectMenu");
     } else if (interaction.isUserSelectMenu()) {
       await this.handleTrigger(interaction, "userSelectMenu");
+    } else if (interaction.isModalSubmit()) {
+      await this.handleTrigger(interaction, "modal");
     }
   }
 
@@ -47,7 +50,8 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
       | ChannelSelectMenuInteraction
       | RoleSelectMenuInteraction
       | MentionableSelectMenuInteraction
-      | UserSelectMenuInteraction,
+      | UserSelectMenuInteraction
+      | ModalSubmitInteraction,
     type: keyof BaseTriggerTypeMap
   ) {
     const trigger = this.flucord.triggers

@@ -4,6 +4,7 @@ import type {
   ChatInputCommandInteraction,
   MentionableSelectMenuInteraction,
   MessageContextMenuCommandInteraction,
+  ModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
   UserContextMenuCommandInteraction,
@@ -21,6 +22,7 @@ export type BaseGuardTypeMap = {
   roleSelectMenu: RoleSelectMenuInteraction;
   mentionableSelectMenu: MentionableSelectMenuInteraction;
   userSelectMenu: UserSelectMenuInteraction;
+  modal: ModalSubmitInteraction;
   any:
     | ChatInputCommandInteraction
     | MessageContextMenuCommandInteraction
@@ -30,7 +32,8 @@ export type BaseGuardTypeMap = {
     | ChannelSelectMenuInteraction
     | RoleSelectMenuInteraction
     | MentionableSelectMenuInteraction
-    | UserSelectMenuInteraction;
+    | UserSelectMenuInteraction
+    | ModalSubmitInteraction;
 };
 
 type BaseGuardOptions<T extends keyof BaseGuardTypeMap> = {

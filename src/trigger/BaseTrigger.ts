@@ -2,6 +2,7 @@ import type {
   ButtonInteraction,
   ChannelSelectMenuInteraction,
   MentionableSelectMenuInteraction,
+  ModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
   UserSelectMenuInteraction
@@ -16,6 +17,7 @@ export type BaseTriggerTypeMap = {
   roleSelectMenu: RoleSelectMenuInteraction;
   mentionableSelectMenu: MentionableSelectMenuInteraction;
   userSelectMenu: UserSelectMenuInteraction;
+  modal: ModalSubmitInteraction;
 };
 
 type BaseTriggerOptions<T extends keyof BaseTriggerTypeMap> = {

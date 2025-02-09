@@ -64,13 +64,16 @@ export class OrGuard extends BaseGuard<"any"> {
 
     const resolvedResults = await Promise.all(results);
 
-    if (resolvedResults.length) {
+    if (
+      resolvedResults.length &&
+      !resolvedResults.some(result => result === true)
+    ) {
       const errorMessages = resolvedResults.filter(
         result => typeof result === "string"
       );
 
       throw new NestedGuardException(
-        `Failed to pass one or more guards:\n\n${errorMessages.map((message, i) => `${i}. **${message}**`).join("\n")}`
+        `You need to pass at least one guard from the following list:\n\n${errorMessages.map((message, i) => `${i}. **${message}**`).join("\n")}`
       );
     }
   }

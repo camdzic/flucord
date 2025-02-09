@@ -14,6 +14,7 @@ import {
 import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
 import { GuardException } from "../../../../exception/GuardException";
 import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
+import { NestedGuardException } from "../../../../exception/NestedGuardException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import type { BaseTriggerTypeMap } from "../../../../trigger/BaseTrigger";
@@ -68,6 +69,7 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
     if (trigger.guards) {
       const failedGuards: any[] = [];
       const cooldownFailedGuards: any[] = [];
+      const nestedDisallowedGuards: any[] = [];
       const disallowedGuards: any[] = [];
       const triggerGuards = trigger.guards.filter(g =>
         this.isSpecificGuard(g, type)
@@ -81,6 +83,8 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
             failedGuards.push(error.message);
           } else if (error instanceof CooldownGuardException) {
             cooldownFailedGuards.push(error.message);
+          } else if (error instanceof NestedGuardException) {
+            nestedDisallowedGuards.push(error.message);
           } else if (error instanceof GuardException) {
             disallowedGuards.push(error.message);
           }
@@ -100,6 +104,14 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
       if (cooldownFailedGuards.length) {
         return interaction.reply({
           embeds: [this.flucord.embeds.error(cooldownFailedGuards.join("\n"))],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+      if (nestedDisallowedGuards.length) {
+        return interaction.reply({
+          embeds: [
+            this.flucord.embeds.error(nestedDisallowedGuards.join("\n"))
+          ],
           flags: MessageFlags.Ephemeral
         });
       }

@@ -7,6 +7,7 @@ import {
 import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
 import { GuardException } from "../../../../exception/GuardException";
 import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
+import { NestedGuardException } from "../../../../exception/NestedGuardException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
@@ -36,6 +37,7 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
       if (slashCommand.guards) {
         const failedGuards: any[] = [];
         const cooldownFailedGuards: any[] = [];
+        const nestedDisallowedGuards: any[] = [];
         const disallowedGuards: any[] = [];
         const commandGuards = slashCommand.guards.filter(g =>
           this.isSpecificGuard(g, "slashCommand")
@@ -49,6 +51,8 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
               failedGuards.push(error.message);
             } else if (error instanceof CooldownGuardException) {
               cooldownFailedGuards.push(error.message);
+            } else if (error instanceof NestedGuardException) {
+              nestedDisallowedGuards.push(error.message);
             } else if (error instanceof GuardException) {
               disallowedGuards.push(error.message);
             }
@@ -69,6 +73,14 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
           return interaction.reply({
             embeds: [
               this.flucord.embeds.error(cooldownFailedGuards.join("\n"))
+            ],
+            flags: MessageFlags.Ephemeral
+          });
+        }
+        if (nestedDisallowedGuards.length) {
+          return interaction.reply({
+            embeds: [
+              this.flucord.embeds.error(nestedDisallowedGuards.join("\n"))
             ],
             flags: MessageFlags.Ephemeral
           });

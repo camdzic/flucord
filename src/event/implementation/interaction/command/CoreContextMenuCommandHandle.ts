@@ -10,6 +10,7 @@ import type { BaseContextMenuCommandTypeMap } from "../../../../command/BaseCont
 import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
 import { GuardException } from "../../../../exception/GuardException";
 import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
+import { NestedGuardException } from "../../../../exception/NestedGuardException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
@@ -59,6 +60,7 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
     if (contextMenuCommand.guards) {
       const failedGuards: any[] = [];
       const cooldownFailedGuards: any[] = [];
+      const nestedDisallowedGuards: any[] = [];
       const disallowedGuards: any[] = [];
       const contextMenuCommandGuards = contextMenuCommand.guards.filter(g =>
         this.isSpecificGuard(g, type)
@@ -72,6 +74,8 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
             failedGuards.push(error.message);
           } else if (error instanceof CooldownGuardException) {
             cooldownFailedGuards.push(error.message);
+          } else if (error instanceof NestedGuardException) {
+            nestedDisallowedGuards.push(error.message);
           } else if (error instanceof GuardException) {
             disallowedGuards.push(error.message);
           }
@@ -91,6 +95,14 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
       if (cooldownFailedGuards.length) {
         return interaction.reply({
           embeds: [this.flucord.embeds.error(cooldownFailedGuards.join("\n"))],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+      if (nestedDisallowedGuards.length) {
+        return interaction.reply({
+          embeds: [
+            this.flucord.embeds.error(nestedDisallowedGuards.join("\n"))
+          ],
           flags: MessageFlags.Ephemeral
         });
       }

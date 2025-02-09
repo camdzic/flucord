@@ -22,6 +22,7 @@ export * from "./exception/BaseException";
 export * from "./exception/GuardException";
 export * from "./exception/GuardExecutionFailException";
 export * from "./exception/CooldownGuardException";
+export * from "./exception/NestedGuardException";
 
 export * from "./utility/Config";
 export * from "./utility/EmbedBuilder";

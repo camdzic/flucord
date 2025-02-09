@@ -11,7 +11,10 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
+import { CooldownGuardException } from "../../../exception/CooldownGuardException";
 import { GuardException } from "../../../exception/GuardException";
+import { GuardExecutionFailException } from "../../../exception/GuardExecutionFailException";
+import { NestedGuardException } from "../../../exception/NestedGuardException";
 import { BaseGuard, type BaseGuardTypeMap } from "../../BaseGuard";
 
 export class OrGuard extends BaseGuard<"any"> {
@@ -25,7 +28,7 @@ export class OrGuard extends BaseGuard<"any"> {
     this.guards = guards;
   }
 
-  execute(
+  async execute(
     interaction:
       | ChatInputCommandInteraction<CacheType>
       | MessageContextMenuCommandInteraction<CacheType>
@@ -46,14 +49,28 @@ export class OrGuard extends BaseGuard<"any"> {
       try {
         await guard.execute(interaction);
         return true;
-      } catch {
-        return false;
+      } catch (error) {
+        if (error instanceof GuardException) {
+          return error.message;
+        }
+        if (error instanceof GuardExecutionFailException) {
+          return error.message;
+        }
+        if (error instanceof CooldownGuardException) {
+          return error.message;
+        }
       }
     });
 
-    if (results.length && !results.some(result => result)) {
-      throw new GuardException(
-        `None of the guards in ${this.constructor.name} passed`
+    const resolvedResults = await Promise.all(results);
+
+    if (resolvedResults.length) {
+      const errorMessages = resolvedResults.filter(
+        result => typeof result === "string"
+      );
+
+      throw new NestedGuardException(
+        `Failed to pass one or more guards:\n\n${errorMessages.map((message, i) => `${i}. **${message}**`).join("\n")}`
       );
     }
   }

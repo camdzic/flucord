@@ -11,7 +11,10 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
+import { CooldownGuardException } from "../../../exception/CooldownGuardException";
 import { GuardException } from "../../../exception/GuardException";
+import { GuardExecutionFailException } from "../../../exception/GuardExecutionFailException";
+import { NestedGuardException } from "../../../exception/NestedGuardException";
 import { BaseGuard, type BaseGuardTypeMap } from "../../BaseGuard";
 
 export class AndGuard extends BaseGuard<"any"> {
@@ -45,10 +48,19 @@ export class AndGuard extends BaseGuard<"any"> {
     for (const guard of allowedGuards) {
       try {
         await guard.execute(interaction);
-      } catch {
-        throw new GuardException(
-          `Guard ${guard.constructor.name} failed in ${this.constructor.name}`
-        );
+      } catch (error) {
+        if (error instanceof GuardExecutionFailException) {
+          throw new GuardExecutionFailException(error.message);
+        }
+        if (error instanceof CooldownGuardException) {
+          throw new CooldownGuardException(error.message);
+        }
+        if (error instanceof NestedGuardException) {
+          throw new NestedGuardException(error.message);
+        }
+        if (error instanceof GuardException) {
+          throw new GuardException(error.message);
+        }
       }
     }
   }

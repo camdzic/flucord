@@ -105,7 +105,7 @@ export class Flucord {
     this.client = new Client(djsClientOptions);
 
     this.config = new Config("config/config.json", configSchema, {
-      token: "token-here",
+      token: "nameSaysItAll",
       commands: {
         enabled: true,
         global: true,

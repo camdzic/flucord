@@ -1,7 +1,4 @@
-import {
-  type ColorResolvable,
-  EmbedBuilder as DJSEmbedBuilder
-} from "discord.js";
+import { EmbedBuilder as DJSEmbedBuilder } from "discord.js";
 import type { Flucord } from "../lib/Flucord";
 
 export class EmbedBuilder {
@@ -14,7 +11,7 @@ export class EmbedBuilder {
 
     this.primary = () => {
       return new DJSEmbedBuilder().setColor(
-        this.flucord.settings.getValue<ColorResolvable>("colors.primary")
+        this.flucord.config.get("colors").primary
       );
     };
 
@@ -27,16 +24,14 @@ export class EmbedBuilder {
 
   success(message: string) {
     return new DJSEmbedBuilder()
-      .setColor(
-        this.flucord.settings.getValue<ColorResolvable>("colors.success")
-      )
+      .setColor(this.flucord.config.get("colors").success)
       .setTitle("Success!")
       .setDescription(`✅ ${message}`);
   }
 
   error(message: string) {
     return new DJSEmbedBuilder()
-      .setColor(this.flucord.settings.getValue<ColorResolvable>("colors.error"))
+      .setColor(this.flucord.config.get("colors").error)
       .setTitle("Error!")
       .setDescription(`❌ ${message}`);
   }

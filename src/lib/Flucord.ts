@@ -1,6 +1,13 @@
 import { Glob } from "bun";
 import { CronJob } from "cron";
-import { Client, type ClientEvents, type ClientOptions } from "discord.js";
+import {
+  Client,
+  type ClientEvents,
+  type ClientOptions,
+  type ColorResolvable,
+  resolveColor
+} from "discord.js";
+import { z } from "zod";
 import {
   BaseContextMenuCommand,
   type BaseContextMenuCommandTypeMap
@@ -30,6 +37,32 @@ type FlucordOptions = {
   djsClientOptions: ClientOptions;
 };
 
+export const colorResolvableSchema = z
+  .custom<ColorResolvable>()
+  .refine(value => {
+    try {
+      const resolvedColor = resolveColor(value);
+
+      return !!resolvedColor;
+    } catch {
+      return false;
+    }
+  });
+
+const configSchema = z.object({
+  token: z.string(),
+  commands: z.object({
+    enabled: z.boolean(),
+    global: z.boolean(),
+    guildId: z.string().nullable()
+  }),
+  colors: z.object({
+    primary: colorResolvableSchema,
+    success: colorResolvableSchema,
+    error: colorResolvableSchema
+  })
+});
+
 export class Flucord {
   readonly defaultTimezone: TimeZone;
   private readonly eventsDir: string;
@@ -39,8 +72,7 @@ export class Flucord {
 
   readonly client: Client<true>;
 
-  readonly settings: Config;
-
+  readonly config: Config<z.infer<typeof configSchema>>;
   readonly logger: Logger;
   embeds: EmbedBuilder;
 
@@ -72,14 +104,18 @@ export class Flucord {
 
     this.client = new Client(djsClientOptions);
 
-    this.settings = new Config("config/settings.json", {
-      token: "your-token-here",
-      "commands.enabled": true,
-      "commands.global": true,
-      "commands.guild_id": null,
-      "colors.primary": "#5865f2",
-      "colors.error": "#ed4245",
-      "colors.success": "#57f287"
+    this.config = new Config("config/config.json", configSchema, {
+      token: "token-here",
+      commands: {
+        enabled: true,
+        global: true,
+        guildId: null
+      },
+      colors: {
+        primary: "#5865f2",
+        success: "#57f287",
+        error: "#ed4245"
+      }
     });
 
     this.logger = new Logger(this);
@@ -178,6 +214,6 @@ export class Flucord {
     await this.loadCommands();
     await this.loadCrons();
 
-    await this.client.login(this.settings.getString("token"));
+    await this.client.login(this.config.get("token"));
   }
 }

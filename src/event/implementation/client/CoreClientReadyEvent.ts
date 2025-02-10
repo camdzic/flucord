@@ -17,7 +17,7 @@ export class CoreClientReadyEvent extends BaseEvent<"ready"> {
   }
 
   async execute() {
-    if (this.flucord.settings.getBoolean("commands.enabled")) {
+    if (this.flucord.config.get("commands").enabled) {
       await this.registerCommands();
     } else {
       this.flucord.logger.warn("Commands are disabled");
@@ -38,7 +38,7 @@ export class CoreClientReadyEvent extends BaseEvent<"ready"> {
     const commands = [...slashCommands, ...contextMenuCommands];
 
     try {
-      if (this.flucord.settings.getBoolean("commands.global")) {
+      if (this.flucord.config.get("commands").global) {
         if (!this.flucord.client.application) {
           return this.flucord.logger.warn(
             "Application is not available, no commands will be registered"
@@ -47,9 +47,15 @@ export class CoreClientReadyEvent extends BaseEvent<"ready"> {
 
         await this.flucord.client.application.commands.set(commands);
       } else {
-        const guild = this.flucord.client.guilds.cache.get(
-          this.flucord.settings.getString("commands.guild_id")
-        );
+        const guildId = this.flucord.config.get("commands").guildId;
+
+        if (!guildId) {
+          return this.flucord.logger.warn(
+            "Guild ID is not available, no commands will be registered"
+          );
+        }
+
+        const guild = this.flucord.client.guilds.cache.get(guildId);
 
         if (!guild) {
           return this.flucord.logger.warn(

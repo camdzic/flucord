@@ -1,160 +1,84 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
-import { ConfigException } from "../exception/ConfigException";
+import fs from "node:fs";
+import path from "node:path";
+import type { ZodSchema } from "zod";
 
-type NestedConfig = {
-  [key: string]: NestedConfig | unknown;
-};
+export class Config<T> {
+  private filePath: string;
+  private zodSchema: ZodSchema<T>;
+  private defaults: T;
 
-export class Config {
-  private readonly configPath: string;
+  private configData: T;
 
-  private configData: NestedConfig;
-
-  constructor(configPath: string, defaults: Record<string, unknown> = {}) {
-    this.configPath = configPath;
-
-    this.configData = {};
+  constructor(filePath: string, zodSchema: ZodSchema<T>, defaults: T) {
+    this.filePath = filePath;
+    this.zodSchema = zodSchema;
+    this.defaults = defaults;
 
     this.ensureConfigFileExists();
-    this.loadConfigData();
-    this.applyDefaultValues(defaults);
+
+    const rawData = fs.readFileSync(this.filePath, "utf-8");
+    const parsedData = JSON.parse(rawData);
+
+    this.configData = this.zodSchema.parse(parsedData);
   }
 
   private ensureConfigFileExists() {
-    const directory = path.dirname(this.configPath);
+    const fileDir = path.dirname(this.filePath);
 
-    if (!fs.existsSync(directory)) {
-      fs.mkdirSync(directory, { recursive: true });
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true });
     }
 
-    if (!fs.existsSync(this.configPath)) {
-      fs.writeFileSync(this.configPath, JSON.stringify({}, null, 2));
-    }
-  }
+    const defaultConfig = this.defaults;
 
-  private loadConfigData() {
-    try {
-      const fileContent = fs.readFileSync(this.configPath, "utf-8");
+    if (!fs.existsSync(this.filePath)) {
+      fs.writeFileSync(this.filePath, JSON.stringify(defaultConfig, null, 2));
+    } else {
+      const rawData = fs.readFileSync(this.filePath, "utf-8");
+      const parsedData = JSON.parse(rawData);
 
-      this.configData = JSON.parse(fileContent);
-    } catch {
-      this.configData = {};
-    }
-  }
+      const mergedData = {
+        ...defaultConfig,
+        ...parsedData
+      };
 
-  private persistConfigData() {
-    fs.writeFileSync(this.configPath, JSON.stringify(this.configData, null, 2));
-  }
-
-  private applyDefaultValues(defaults: Record<string, unknown>) {
-    for (const [key, value] of Object.entries(defaults)) {
-      this.registerPath(key, value);
-    }
-  }
-
-  registerPath(configPath: string, defaultValue: unknown = null) {
-    const pathSegments = configPath.split(".");
-    const finalKey = pathSegments.pop();
-    let currentLevel = this.configData;
-
-    for (const segment of pathSegments) {
-      if (!currentLevel[segment] || typeof currentLevel[segment] !== "object") {
-        currentLevel[segment] = {};
-      }
-      currentLevel = currentLevel[segment] as NestedConfig;
-    }
-
-    // biome-ignore lint/suspicious/noPrototypeBuiltins: <explanation>
-    if (finalKey && !currentLevel.hasOwnProperty(finalKey)) {
-      currentLevel[finalKey] = defaultValue;
-      this.persistConfigData();
-    }
-  }
-
-  private isNestedObject(value: unknown): value is NestedConfig {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-  }
-
-  private retrieveValue(path: string) {
-    return path.split(".").reduce<unknown>((currentNode, segment) => {
-      if (!this.isNestedObject(currentNode)) {
-        throw new ConfigException(`Invalid path '${path}'`);
+      for (const key in defaultConfig) {
+        if (!(key in parsedData)) {
+          mergedData[key] = defaultConfig[key];
+        }
       }
 
-      return currentNode[segment];
-    }, this.configData);
-  }
+      for (const key in mergedData) {
+        if (
+          Array.isArray(mergedData[key]) &&
+          Array.isArray(defaultConfig[key])
+        ) {
+          if (!mergedData[key].length) {
+            mergedData[key] = defaultConfig[key];
+          } else {
+            mergedData[key] = mergedData[key].map(item => {
+              if (item && typeof item === "object") {
+                const [defaultItem] = defaultConfig[key];
 
-  private prettyTypeof(value: unknown) {
-    if (Array.isArray(value)) {
-      return "array";
-    }
+                return { ...defaultItem, ...item };
+              }
 
-    return typeof value;
-  }
+              return item;
+            });
+          }
+        }
+      }
 
-  getValue<T>(path: string) {
-    return this.retrieveValue(path) as T;
-  }
+      const validationResult = this.zodSchema.parse(mergedData);
 
-  getString(path: string) {
-    const value = this.retrieveValue(path);
-
-    if (typeof value !== "string") {
-      throw new ConfigException(
-        `Expected ${this.prettyTypeof(value)} at '${path}' and not a string`
+      fs.writeFileSync(
+        this.filePath,
+        JSON.stringify(validationResult, null, 2)
       );
     }
-
-    return value;
   }
 
-  getNumber(path: string) {
-    const value = this.retrieveValue(path);
-
-    if (typeof value !== "number") {
-      throw new ConfigException(
-        `Expected ${this.prettyTypeof(value)} at '${path}' and not a number`
-      );
-    }
-
-    return value;
-  }
-
-  getBoolean(path: string) {
-    const value = this.retrieveValue(path);
-
-    if (typeof value !== "boolean") {
-      throw new ConfigException(
-        `Expected ${this.prettyTypeof(value)} at '${path}' and not a boolean`
-      );
-    }
-
-    return value;
-  }
-
-  getObject<T extends NestedConfig>(path: string) {
-    const value = this.retrieveValue(path);
-
-    if (!this.isNestedObject(value)) {
-      throw new ConfigException(
-        `Expected ${this.prettyTypeof(value)} at '${path}' and not an object`
-      );
-    }
-
-    return value as T;
-  }
-
-  getArray<T>(path: string): T[] {
-    const value = this.retrieveValue(path);
-
-    if (!Array.isArray(value)) {
-      throw new ConfigException(
-        `Expected ${this.prettyTypeof(value)} at '${path}' and not an array`
-      );
-    }
-
-    return value as T[];
+  get<TK extends keyof T>(key: TK): T[TK] {
+    return this.configData[key];
   }
 }

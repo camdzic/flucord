@@ -1,13 +1,7 @@
 import { Glob } from "bun";
 import { CronJob } from "cron";
-import {
-  Client,
-  type ClientEvents,
-  type ClientOptions,
-  type ColorResolvable,
-  resolveColor
-} from "discord.js";
-import { z } from "zod";
+import { Client, type ClientEvents, type ClientOptions } from "discord.js";
+import type { z } from "zod";
 import {
   BaseContextMenuCommand,
   type BaseContextMenuCommandTypeMap
@@ -23,6 +17,7 @@ import { BaseTrigger, type BaseTriggerTypeMap } from "../trigger/BaseTrigger";
 import { Config } from "../utility/Config";
 import { EmbedBuilder } from "../utility/EmbedBuilder";
 import { Logger } from "../utility/Logger";
+import { defaultConfigSchema } from "../utility/configSchemas/defaultConfigSchema";
 import type { timeZonesNames } from "../utility/constants/TimeZoneName";
 
 //biome-ignore format:
@@ -37,32 +32,6 @@ type FlucordOptions = {
   djsClientOptions: ClientOptions;
 };
 
-export const colorResolvableSchema = z
-  .custom<ColorResolvable>()
-  .refine(value => {
-    try {
-      const resolvedColor = resolveColor(value);
-
-      return !!resolvedColor;
-    } catch {
-      return false;
-    }
-  });
-
-const configSchema = z.object({
-  token: z.string(),
-  commands: z.object({
-    enabled: z.boolean(),
-    global: z.boolean(),
-    guildId: z.string().nullable()
-  }),
-  colors: z.object({
-    primary: colorResolvableSchema,
-    success: colorResolvableSchema,
-    error: colorResolvableSchema
-  })
-});
-
 export class Flucord {
   readonly defaultTimezone: TimeZone;
   private readonly eventsDir: string;
@@ -72,7 +41,7 @@ export class Flucord {
 
   readonly client: Client<true>;
 
-  readonly config: Config<z.infer<typeof configSchema>>;
+  readonly config: Config<z.infer<typeof defaultConfigSchema>>;
   readonly logger: Logger;
   embeds: EmbedBuilder;
 
@@ -104,7 +73,7 @@ export class Flucord {
 
     this.client = new Client(djsClientOptions);
 
-    this.config = new Config("config/config.json", configSchema, {
+    this.config = new Config("config/config.json", defaultConfigSchema, {
       token: "nameSaysItAll",
       commands: {
         enabled: true,

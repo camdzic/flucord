@@ -24,6 +24,9 @@ export * from "./exception/GuardExecutionFailException";
 export * from "./exception/CooldownGuardException";
 export * from "./exception/NestedGuardException";
 
+export * from "./utility/configSchemas/colorResolvableSchema";
+export * from "./utility/configSchemas/defaultConfigSchema";
+
 export * from "./utility/Config";
 export * from "./utility/EmbedBuilder";
 

@@ -1,6 +1,7 @@
 import type {
   Awaitable,
   ButtonInteraction,
+  CacheType,
   ChannelSelectMenuInteraction,
   CollectedInteraction,
   InteractionReplyOptions,
@@ -59,21 +60,23 @@ export abstract class BaseMenuPage<T> {
     }
   }
 
-  handleButton?(interaction: ButtonInteraction): Awaitable<unknown>;
+  handleButton?(interaction: ButtonInteraction<CacheType>): Awaitable<unknown>;
   handleStringSelectMenu?(
-    interaction: StringSelectMenuInteraction
+    interaction: StringSelectMenuInteraction<CacheType>
   ): Awaitable<unknown>;
   handleChannelSelectMenu?(
-    interaction: ChannelSelectMenuInteraction
+    interaction: ChannelSelectMenuInteraction<CacheType>
   ): Awaitable<unknown>;
   handleRoleSelectMenu?(
-    interaction: RoleSelectMenuInteraction
+    interaction: RoleSelectMenuInteraction<CacheType>
   ): Awaitable<unknown>;
   handleMentionableSelectMenu?(
-    interaction: MentionableSelectMenuInteraction
+    interaction: MentionableSelectMenuInteraction<CacheType>
   ): Awaitable<unknown>;
   handleUserSelectMenu?(
-    interaction: UserSelectMenuInteraction
+    interaction: UserSelectMenuInteraction<CacheType>
   ): Awaitable<unknown>;
-  handleModal?(interaction: ModalSubmitInteraction): Awaitable<unknown>;
+  handleModal?(
+    interaction: ModalSubmitInteraction<CacheType>
+  ): Awaitable<unknown>;
 }

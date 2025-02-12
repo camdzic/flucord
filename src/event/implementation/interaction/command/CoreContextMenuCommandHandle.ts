@@ -1,16 +1,12 @@
+import { Result } from "@sapphire/result";
 import {
   type CacheType,
-  DiscordAPIError,
   type Interaction,
   type MessageContextMenuCommandInteraction,
   MessageFlags,
   type UserContextMenuCommandInteraction
 } from "discord.js";
 import type { BaseContextMenuCommandTypeMap } from "../../../../command/BaseContextMenuCommand";
-import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
-import { GuardException } from "../../../../exception/GuardException";
-import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
-import { NestedGuardException } from "../../../../exception/NestedGuardException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
@@ -58,98 +54,39 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
     }
 
     if (contextMenuCommand.guards) {
-      const failedGuards: any[] = [];
-      const cooldownFailedGuards: any[] = [];
-      const nestedDisallowedGuards: any[] = [];
-      const disallowedGuards: any[] = [];
       const contextMenuCommandGuards = contextMenuCommand.guards.filter(g =>
         this.isSpecificGuard(g, type)
       );
 
-      for (const guard of contextMenuCommandGuards) {
-        try {
-          await guard.execute(interaction);
-        } catch (error) {
-          if (error instanceof GuardExecutionFailException) {
-            failedGuards.push(error.message);
-          } else if (error instanceof CooldownGuardException) {
-            cooldownFailedGuards.push(error.message);
-          } else if (error instanceof NestedGuardException) {
-            nestedDisallowedGuards.push(error.message);
-          } else if (error instanceof GuardException) {
-            disallowedGuards.push(error.message);
-          }
-        }
-      }
-
-      if (failedGuards.length) {
-        return interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(
-              `Strange things happened while execution:\n\n${failedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
-            )
-          ],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-      if (cooldownFailedGuards.length) {
-        return interaction.reply({
-          embeds: [this.flucord.embeds.error(cooldownFailedGuards.join("\n"))],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-      if (nestedDisallowedGuards.length) {
-        return interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(nestedDisallowedGuards.join("\n"))
-          ],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-      if (disallowedGuards.length) {
-        return interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(
-              `In order to use this command, you need to meet the following requirements:\n\n${disallowedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
-            )
-          ],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-    }
-
-    try {
-      await contextMenuCommand.execute(interaction);
-    } catch (error) {
-      if (interaction.deferred || interaction.replied) {
-        interaction.editReply({
-          embeds: [
-            this.flucord.embeds.error(
-              `Failed to execute ${contextMenuCommand.constructor.name}, error will be reported`
-            )
-          ],
-          components: []
-        });
-      } else {
-        interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(
-              `Failed to execute ${contextMenuCommand.constructor.name}, error will be reported`
-            )
-          ],
-          components: [],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-
-      this.flucord.logger.error(
-        `Failed to execute ${contextMenuCommand.constructor.name}`
+      const results = await Promise.all(
+        contextMenuCommandGuards.map(guard =>
+          Result.fromAsync(() => guard.execute(interaction))
+        )
       );
 
-      if (!(error instanceof DiscordAPIError)) {
-        this.flucord.logger.error(error);
+      for (const result of results) {
+        if (result.isErr()) {
+          result.inspectErr(async error => {
+            await interaction.reply({
+              embeds: [this.flucord.embeds.error(error.message)],
+              flags: MessageFlags.Ephemeral
+            });
+          });
+          return;
+        }
       }
     }
+
+    const result = await Result.fromAsync(
+      async () => await contextMenuCommand.execute(interaction)
+    );
+
+    result.inspectErr(error => {
+      this.flucord.logger.error(
+        "An error occurred while executing a context menu command"
+      );
+      this.flucord.logger.error(error);
+    });
   }
 
   private isSpecificGuard(

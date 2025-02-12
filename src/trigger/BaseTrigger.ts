@@ -1,4 +1,5 @@
 import type {
+  Awaitable,
   ButtonInteraction,
   ChannelSelectMenuInteraction,
   MentionableSelectMenuInteraction,
@@ -47,5 +48,5 @@ export abstract class BaseTrigger<T extends keyof BaseTriggerTypeMap> {
     this.guards = guards;
   }
 
-  abstract execute(interaction: BaseTriggerTypeMap[T]): unknown;
+  abstract execute(interaction: BaseTriggerTypeMap[T]): Awaitable<unknown>;
 }

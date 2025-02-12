@@ -11,10 +11,6 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
-import { CooldownGuardException } from "../../../exception/CooldownGuardException";
-import { GuardException } from "../../../exception/GuardException";
-import { GuardExecutionFailException } from "../../../exception/GuardExecutionFailException";
-import { NestedGuardException } from "../../../exception/NestedGuardException";
 import { BaseGuard, type BaseGuardTypeMap } from "../../BaseGuard";
 
 export class OrGuard extends BaseGuard<"any"> {
@@ -45,37 +41,11 @@ export class OrGuard extends BaseGuard<"any"> {
       this.isSpecificGuard(g, this.getInteractionType(interaction))
     );
 
-    const results = allowedGuards.map(async guard => {
-      try {
-        await guard.execute(interaction);
-        return true;
-      } catch (error) {
-        if (error instanceof GuardException) {
-          return error.message;
-        }
-        if (error instanceof GuardExecutionFailException) {
-          return error.message;
-        }
-        if (error instanceof CooldownGuardException) {
-          return error.message;
-        }
-      }
-    });
+    const results = await Promise.all(
+      allowedGuards.map(guard => guard.execute(interaction))
+    );
 
-    const resolvedResults = await Promise.all(results);
-
-    if (
-      resolvedResults.length &&
-      !resolvedResults.some(result => result === true)
-    ) {
-      const errorMessages = resolvedResults.filter(
-        result => typeof result === "string"
-      );
-
-      throw new NestedGuardException(
-        `You need to pass at least one guard from the following list:\n\n${errorMessages.map((message, i) => `${i}. **${message}**`).join("\n")}`
-      );
-    }
+    return results.find(result => result.isOk()) ?? results[0];
   }
 
   private isSpecificGuard(

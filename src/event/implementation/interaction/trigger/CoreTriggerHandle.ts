@@ -1,8 +1,8 @@
+import { Result } from "@sapphire/result";
 import {
   type ButtonInteraction,
   type CacheType,
   type ChannelSelectMenuInteraction,
-  DiscordAPIError,
   type Interaction,
   type MentionableSelectMenuInteraction,
   MessageFlags,
@@ -11,10 +11,6 @@ import {
   type StringSelectMenuInteraction,
   type UserSelectMenuInteraction
 } from "discord.js";
-import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
-import { GuardException } from "../../../../exception/GuardException";
-import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
-import { NestedGuardException } from "../../../../exception/NestedGuardException";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import type { BaseTriggerTypeMap } from "../../../../trigger/BaseTrigger";
@@ -67,96 +63,37 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
     if (!trigger) return;
 
     if (trigger.guards) {
-      const failedGuards: any[] = [];
-      const cooldownFailedGuards: any[] = [];
-      const nestedDisallowedGuards: any[] = [];
-      const disallowedGuards: any[] = [];
       const triggerGuards = trigger.guards.filter(g =>
         this.isSpecificGuard(g, type)
       );
 
-      for (const guard of triggerGuards) {
-        try {
-          await guard.execute(interaction);
-        } catch (error) {
-          if (error instanceof GuardExecutionFailException) {
-            failedGuards.push(error.message);
-          } else if (error instanceof CooldownGuardException) {
-            cooldownFailedGuards.push(error.message);
-          } else if (error instanceof NestedGuardException) {
-            nestedDisallowedGuards.push(error.message);
-          } else if (error instanceof GuardException) {
-            disallowedGuards.push(error.message);
-          }
+      const results = await Promise.all(
+        triggerGuards.map(guard =>
+          Result.fromAsync(() => guard.execute(interaction))
+        )
+      );
+
+      for (const result of results) {
+        if (result.isErr()) {
+          result.inspectErr(async error => {
+            await interaction.reply({
+              embeds: [this.flucord.embeds.error(error.message)],
+              flags: MessageFlags.Ephemeral
+            });
+          });
+          return;
         }
       }
-
-      if (failedGuards.length) {
-        return interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(
-              `Strange things happened while execution:\n\n${failedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
-            )
-          ],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-      if (cooldownFailedGuards.length) {
-        return interaction.reply({
-          embeds: [this.flucord.embeds.error(cooldownFailedGuards.join("\n"))],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-      if (nestedDisallowedGuards.length) {
-        return interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(nestedDisallowedGuards.join("\n"))
-          ],
-          flags: MessageFlags.Ephemeral
-        });
-      }
-      if (disallowedGuards.length) {
-        return interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(
-              `In order to use this trigger, you need to meet the following requirements:\n\n${disallowedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
-            )
-          ],
-          flags: MessageFlags.Ephemeral
-        });
-      }
     }
 
-    try {
-      await trigger.execute(interaction);
-    } catch (error) {
-      if (interaction.deferred || interaction.replied) {
-        interaction.editReply({
-          embeds: [
-            this.flucord.embeds.error(
-              `Failed to execute ${type} trigger, error will be reported`
-            )
-          ],
-          components: []
-        });
-      } else {
-        interaction.reply({
-          embeds: [
-            this.flucord.embeds.error(
-              `Failed to execute ${type} trigger, error will be reported`
-            )
-          ],
-          components: [],
-          flags: MessageFlags.Ephemeral
-        });
-      }
+    const result = await Result.fromAsync(
+      async () => await trigger.execute(interaction)
+    );
 
-      this.flucord.logger.error(`Failed to execute ${type} trigger`);
-
-      if (!(error instanceof DiscordAPIError)) {
-        this.flucord.logger.error(error);
-      }
-    }
+    result.inspectErr(error => {
+      this.flucord.logger.error("An error occurred while executing a trigger");
+      this.flucord.logger.error(error);
+    });
   }
 
   private isSpecificGuard(

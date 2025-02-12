@@ -18,12 +18,6 @@ export * from "./trigger/BaseTrigger";
 
 export * from "./cron/BaseCron";
 
-export * from "./exception/BaseException";
-export * from "./exception/GuardException";
-export * from "./exception/GuardExecutionFailException";
-export * from "./exception/CooldownGuardException";
-export * from "./exception/NestedGuardException";
-
 export * from "./utility/configSchemas/colorResolvableSchema";
 export * from "./utility/configSchemas/defaultConfigSchema";
 
@@ -34,4 +28,3 @@ export * from "./utility/constants/Time";
 
 export * from "./utility/menu/BaseMenu";
 export * from "./utility/menu/BaseMenuPage";
-export * from "./utility/menu/implementation/PaginationPage";

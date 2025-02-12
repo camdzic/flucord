@@ -35,7 +35,7 @@ bun add flucord discord.js
 ## Credits
 
 Flucord is heavily inspired by [Colossus](https://github.com/RyanLandDev/Colossus).
-*Colossus* is JDA framework for creating Discord bots with ease.
+*Colossus* is JDA framework for creating Discord bots with ease. Flucord also uses some of the code from [Sapphire](https://github.com/sapphiredev), huge thanks to them for their amazing work.
 
 ## Support
 

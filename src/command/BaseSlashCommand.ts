@@ -1,6 +1,7 @@
 import type {
   ApplicationCommandOptionData,
   AutocompleteInteraction,
+  Awaitable,
   CacheType,
   ChatInputCommandInteraction,
   PermissionResolvable
@@ -54,13 +55,13 @@ export abstract class BaseSlashCommand {
 
   abstract execute(
     interaction: ChatInputCommandInteraction<CacheType>
-  ): unknown;
+  ): Awaitable<unknown>;
 
   autocompleteExecute?(
     //biome-ignore lint/correctness/noUnusedVariables:
     //biome-ignore lint/correctness/noUnusedFunctionParameters:
     interaction: AutocompleteInteraction<CacheType>
-  ): unknown {
+  ): Awaitable<unknown> {
     return null;
   }
 }

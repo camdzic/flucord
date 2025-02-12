@@ -7,7 +7,7 @@ import {
   type BaseContextMenuCommandTypeMap
 } from "../command/BaseContextMenuCommand";
 import { BaseSlashCommand } from "../command/BaseSlashCommand";
-import { BaseCron } from "../cron/BaseCron";
+import { BaseCron, type TimeZone } from "../cron/BaseCron";
 import { BaseEvent } from "../event/BaseEvent";
 import { CoreClientReadyEvent } from "../event/implementation/client/CoreClientReadyEvent";
 import { CoreContextMenuCommandHandle } from "../event/implementation/interaction/command/CoreContextMenuCommandHandle";
@@ -18,10 +18,6 @@ import { Config } from "../utility/Config";
 import { EmbedBuilder } from "../utility/EmbedBuilder";
 import { Logger } from "../utility/Logger";
 import { defaultConfigSchema } from "../utility/configSchemas/defaultConfigSchema";
-import type { timeZonesNames } from "../utility/constants/TimeZoneName";
-
-//biome-ignore format:
-type TimeZone = typeof timeZonesNames[number];
 
 type FlucordOptions = {
   defaultTimezone?: TimeZone;

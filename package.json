@@ -24,6 +24,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@sapphire/result": "^2.7.2",
     "colorette": "^2.0.20",
     "cron": "^3.5.0",
     "ts-cron-validator": "^1.1.5",

@@ -1,23 +1,25 @@
 import {
   ActionRowBuilder,
+  type Awaitable,
   type CollectedInteraction,
-  DiscordAPIError,
   InteractionCollector,
-  type InteractionResponse,
   type Message,
   type MessageActionRowComponentBuilder,
   MessageFlags,
   type RepliableInteraction
 } from "discord.js";
-import { MenuException } from "../../exception/MenuException";
+import { MenuError } from "../../error/MenuError";
 import type { Flucord } from "../../lib/Flucord";
 import { Time } from "../constants/Time";
 import type { BaseMenuPage } from "./BaseMenuPage";
 
-export type BaseMenuOptions<T> = {
+type BaseMenuFilter = (interaction: CollectedInteraction) => Awaitable<boolean>;
+
+type BaseMenuOptions<T> = {
   state: T;
   threshold?: number;
   ephemeral?: boolean;
+  filter?: BaseMenuFilter;
 };
 
 export class BaseMenu<T> {
@@ -26,12 +28,12 @@ export class BaseMenu<T> {
   state: T;
   private readonly threshold: number;
   private readonly ephemeral: boolean;
+  private readonly filter: BaseMenuFilter;
 
-  private page: BaseMenuPage<T>;
-  private history: BaseMenuPage<T>[];
+  private currentPage: BaseMenuPage<T>;
+  private pageHistory: BaseMenuPage<T>[];
 
-  private interaction: InteractionResponse;
-  private message: Message;
+  message: Message;
   private collector: InteractionCollector<CollectedInteraction>;
 
   constructor(
@@ -39,7 +41,8 @@ export class BaseMenu<T> {
     {
       state,
       threshold = Time.Minute * 5,
-      ephemeral = false
+      ephemeral = false,
+      filter = () => true
     }: BaseMenuOptions<T>
   ) {
     this.flucord = flucord;
@@ -47,172 +50,97 @@ export class BaseMenu<T> {
     this.state = state;
     this.threshold = threshold;
     this.ephemeral = ephemeral;
+    this.filter = filter;
 
-    this.history = [];
-
-    if (this.threshold > Time.Minute * 14) {
-      this.threshold = Time.Minute * 14;
-    }
+    this.pageHistory = [];
   }
 
-  setPage(page: BaseMenuPage<T>) {
-    if (this.page) {
-      this.history.push(this.page);
+  navigate(page: BaseMenuPage<T>) {
+    if (this.currentPage) {
+      this.pageHistory.push(this.currentPage);
     }
 
-    page.menu = this;
-    page.flucord = this.flucord;
-    this.page = page;
+    this.currentPage = page;
 
     return this;
   }
 
   back() {
-    const lastPage = this.history.pop();
+    const previousPage = this.pageHistory.pop();
 
-    if (!lastPage) {
-      throw new MenuException("There is no page to go back to.");
+    if (!previousPage) {
+      throw new MenuError("No previous page to navigate to");
     }
 
-    this.page = lastPage;
+    this.currentPage = previousPage;
 
     return this;
   }
 
-  private setupInteractionCollector() {
-    const startTime = Date.now();
-    const maxDuration = Time.Minute * 14;
+  async stop(disableComponents = true) {
+    this.collector.stop();
 
-    this.collector = new InteractionCollector(this.message.client, {
-      message: this.message,
-      idle: this.threshold
-    });
-
-    this.collector.on("collect", async interaction => {
-      try {
-        if (interaction.isButton()) {
-          if (!this.page.handleButton) {
-            throw new MenuException(
-              "Button interaction is not supported in this menu page."
-            );
-          }
-
-          await this.page.handleButton(interaction);
-        } else if (interaction.isStringSelectMenu()) {
-          if (!this.page.handleStringSelectMenu) {
-            throw new MenuException(
-              "String select menu interaction is not supported in this menu page."
-            );
-          }
-
-          await this.page.handleStringSelectMenu(interaction);
-        } else if (interaction.isChannelSelectMenu()) {
-          if (!this.page.handleChannelSelectMenu) {
-            throw new MenuException(
-              "Channel select menu interaction is not supported in this menu page."
-            );
-          }
-
-          await this.page.handleChannelSelectMenu(interaction);
-        } else if (interaction.isRoleSelectMenu()) {
-          if (!this.page.handleRoleSelectMenu) {
-            throw new MenuException(
-              "Role select menu interaction is not supported in this menu page."
-            );
-          }
-
-          await this.page.handleRoleSelectMenu(interaction);
-        } else if (interaction.isMentionableSelectMenu()) {
-          if (!this.page.handleMentionableSelectMenu) {
-            throw new MenuException(
-              "Mentionable select menu interaction is not supported in this menu page."
-            );
-          }
-
-          await this.page.handleMentionableSelectMenu(interaction);
-        } else if (interaction.isUserSelectMenu()) {
-          if (!this.page.handleUserSelectMenu) {
-            throw new MenuException(
-              "User select menu interaction is not supported in this menu page."
-            );
-          }
-
-          await this.page.handleUserSelectMenu(interaction);
-        } else if (interaction.isModalSubmit() && interaction.isFromMessage()) {
-          if (!this.page.handleModal) {
-            throw new MenuException(
-              "Modal submit interaction is not supported in this menu page."
-            );
-          }
-
-          await this.page.handleModal(interaction);
-        }
-
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.min(
-          this.threshold,
-          maxDuration - elapsedTime
-        );
-
-        this.collector.resetTimer({
-          idle: remainingTime
-        });
-      } catch (error) {
-        this.flucord.logger.error("Failed to execute menu interaction");
-
-        if (!(error instanceof DiscordAPIError)) {
-          this.flucord.logger.error(error);
-        }
-      }
-
-      this.message = await interaction.fetchReply();
-    });
-
-    this.collector.on("end", () => this.handleEnd());
-  }
-
-  private handleEnd() {
-    if (this.page.handleEnd) {
-      this.page.handleEnd();
+    if (disableComponents) {
+      await this.disableComponents();
     }
 
-    const updatedComponents = this.message.components.map(row =>
-      ActionRowBuilder.from<MessageActionRowComponentBuilder>(row)
-    );
-
-    for (const row of updatedComponents) {
-      for (const component of row.components) {
-        component.setDisabled(true);
-      }
-    }
-
-    if (Date.now() - this.interaction.createdTimestamp < Time.Minute * 15) {
-      return this.interaction.edit({ components: updatedComponents });
-    }
-  }
-
-  //biome-ignore lint/suspicious/useAwait:
-  async render() {
-    if (!this.page) {
-      throw new MenuException("No page is set for the menu.");
-    }
-
-    return this.page.render();
+    return this;
   }
 
   async start(interaction: RepliableInteraction) {
-    const sendData = await this.render();
+    const renderedPage = await this.currentPage.getRenderer();
 
-    this.interaction = await interaction.reply({
-      ...sendData,
-      flags: this.ephemeral ? [MessageFlags.Ephemeral] : []
-    });
-    this.message = await this.interaction.fetch();
+    if (interaction.deferred || interaction.replied) {
+      this.message = await interaction.editReply(renderedPage);
+    } else {
+      const messageResponse = await interaction.reply({
+        ...renderedPage,
+        flags: this.ephemeral ? MessageFlags.Ephemeral : undefined,
+        withResponse: true
+      });
 
-    this.setupInteractionCollector();
+      if (!messageResponse.resource || !messageResponse.resource.message) {
+        throw new MenuError("Failed to reply to interaction");
+      }
+
+      this.message = messageResponse.resource.message;
+    }
+
+    this.setupCollector();
+
+    return this;
   }
 
-  stop() {
-    this.collector.stop();
+  private setupCollector() {
+    this.collector = new InteractionCollector(this.flucord.client, {
+      message: this.message,
+      idle: this.threshold,
+      filter: this.filter
+    });
+
+    this.collector.on("collect", async interaction => {
+      await this.currentPage.handleInteraction(interaction);
+
+      this.collector.resetTimer({ idle: this.threshold });
+    });
+  }
+
+  private async disableComponents() {
+    if (
+      this.message.editable &&
+      !this.message.flags.has(MessageFlags.Ephemeral)
+    ) {
+      const disabledComponents = this.message.components.map(row =>
+        ActionRowBuilder.from<MessageActionRowComponentBuilder>(row)
+      );
+
+      for (const row of disabledComponents) {
+        for (const component of row.components) {
+          component.setDisabled(true);
+        }
+      }
+
+      await this.message.edit({ components: disabledComponents });
+    }
   }
 }

@@ -1,9 +1,10 @@
+import type { Awaitable } from "discord.js";
 import type { CRON } from "ts-cron-validator";
 import type { Flucord } from "../lib/Flucord";
 import type { timeZonesNames } from "../utility/constants/TimeZoneName";
 
 //biome-ignore format:
-type TimeZone = typeof timeZonesNames[number];
+export type TimeZone = typeof timeZonesNames[number];
 
 type BaseCronOptions<T extends string> = {
   format: CRON<T> extends never ? never : T;
@@ -26,5 +27,5 @@ export abstract class BaseCron<T extends string> {
     this.timezone = timezone;
   }
 
-  abstract execute(): unknown;
+  abstract execute(): Awaitable<unknown>;
 }

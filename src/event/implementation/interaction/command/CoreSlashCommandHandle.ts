@@ -1,13 +1,5 @@
-import {
-  type CacheType,
-  DiscordAPIError,
-  type Interaction,
-  MessageFlags
-} from "discord.js";
-import { CooldownGuardException } from "../../../../exception/CooldownGuardException";
-import { GuardException } from "../../../../exception/GuardException";
-import { GuardExecutionFailException } from "../../../../exception/GuardExecutionFailException";
-import { NestedGuardException } from "../../../../exception/NestedGuardException";
+import { Result } from "@sapphire/result";
+import { type CacheType, type Interaction, MessageFlags } from "discord.js";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
@@ -35,119 +27,57 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
       }
 
       if (slashCommand.guards) {
-        const failedGuards: any[] = [];
-        const cooldownFailedGuards: any[] = [];
-        const nestedDisallowedGuards: any[] = [];
-        const disallowedGuards: any[] = [];
         const commandGuards = slashCommand.guards.filter(g =>
           this.isSpecificGuard(g, "slashCommand")
         );
 
-        for (const guard of commandGuards) {
-          try {
-            await guard.execute(interaction);
-          } catch (error) {
-            if (error instanceof GuardExecutionFailException) {
-              failedGuards.push(error.message);
-            } else if (error instanceof CooldownGuardException) {
-              cooldownFailedGuards.push(error.message);
-            } else if (error instanceof NestedGuardException) {
-              nestedDisallowedGuards.push(error.message);
-            } else if (error instanceof GuardException) {
-              disallowedGuards.push(error.message);
-            }
-          }
-        }
-
-        if (failedGuards.length) {
-          return interaction.reply({
-            embeds: [
-              this.flucord.embeds.error(
-                `Strange things happened while execution:\n\n${failedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
-              )
-            ],
-            flags: MessageFlags.Ephemeral
-          });
-        }
-        if (cooldownFailedGuards.length) {
-          return interaction.reply({
-            embeds: [
-              this.flucord.embeds.error(cooldownFailedGuards.join("\n"))
-            ],
-            flags: MessageFlags.Ephemeral
-          });
-        }
-        if (nestedDisallowedGuards.length) {
-          return interaction.reply({
-            embeds: [
-              this.flucord.embeds.error(nestedDisallowedGuards.join("\n"))
-            ],
-            flags: MessageFlags.Ephemeral
-          });
-        }
-        if (disallowedGuards.length) {
-          return interaction.reply({
-            embeds: [
-              this.flucord.embeds.error(
-                `In order to use this command, you need to meet the following requirements:\n\n${disallowedGuards.map((message, i) => `${i}. **${message}**`).join("\n")}`
-              )
-            ],
-            flags: MessageFlags.Ephemeral
-          });
-        }
-      }
-
-      try {
-        await slashCommand.execute(interaction);
-      } catch (error) {
-        if (interaction.deferred || interaction.replied) {
-          interaction.editReply({
-            embeds: [
-              this.flucord.embeds.error(
-                `Failed to execute ${slashCommand.constructor.name}, error will be reported`
-              )
-            ],
-            components: []
-          });
-        } else {
-          interaction.reply({
-            embeds: [
-              this.flucord.embeds.error(
-                `Failed to execute ${slashCommand.constructor.name}, error will be reported`
-              )
-            ],
-            components: [],
-            flags: MessageFlags.Ephemeral
-          });
-        }
-
-        this.flucord.logger.error(
-          `Failed to execute ${slashCommand.constructor.name}`
+        const results = await Promise.all(
+          commandGuards.map(guard =>
+            Result.fromAsync(() => guard.execute(interaction))
+          )
         );
 
-        if (!(error instanceof DiscordAPIError)) {
-          this.flucord.logger.error(error);
+        for (const result of results) {
+          if (result.isErr()) {
+            result.inspectErr(async error => {
+              await interaction.reply({
+                embeds: [this.flucord.embeds.error(error.message)],
+                flags: MessageFlags.Ephemeral
+              });
+            });
+            return;
+          }
         }
       }
+
+      const result = await Result.fromAsync(
+        async () => await slashCommand.execute(interaction)
+      );
+
+      result.inspectErr(error => {
+        this.flucord.logger.error(
+          "An error occurred while executing a slash command"
+        );
+        this.flucord.logger.error(error);
+      });
     } else if (interaction.isAutocomplete()) {
       const slashCommand = this.flucord.slashCommands.find(
         command => command.name === interaction.commandName
       );
 
-      if (!slashCommand) return;
+      if (slashCommand && slashCommand.autocompleteExecute) {
+        const autocompleteExecute = slashCommand.autocompleteExecute;
 
-      if (slashCommand.autocompleteExecute) {
-        try {
-          await slashCommand.autocompleteExecute(interaction);
-        } catch (error) {
+        const result = await Result.fromAsync(
+          async () => await autocompleteExecute(interaction)
+        );
+
+        result.inspectErr(error => {
           this.flucord.logger.error(
-            `Failed to execute autocomplete for ${slashCommand.constructor.name}`
+            "An error occurred while executing a slash command autocomplete"
           );
-
-          if (!(error instanceof DiscordAPIError)) {
-            this.flucord.logger.error(error);
-          }
-        }
+          this.flucord.logger.error(error);
+        });
       }
     }
   }

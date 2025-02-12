@@ -11,10 +11,6 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
-import { CooldownGuardException } from "../../../exception/CooldownGuardException";
-import { GuardException } from "../../../exception/GuardException";
-import { GuardExecutionFailException } from "../../../exception/GuardExecutionFailException";
-import { NestedGuardException } from "../../../exception/NestedGuardException";
 import { BaseGuard, type BaseGuardTypeMap } from "../../BaseGuard";
 
 export class AndGuard extends BaseGuard<"any"> {
@@ -45,24 +41,11 @@ export class AndGuard extends BaseGuard<"any"> {
       this.isSpecificGuard(g, this.getInteractionType(interaction))
     );
 
-    for (const guard of allowedGuards) {
-      try {
-        await guard.execute(interaction);
-      } catch (error) {
-        if (error instanceof GuardExecutionFailException) {
-          throw new GuardExecutionFailException(error.message);
-        }
-        if (error instanceof CooldownGuardException) {
-          throw new CooldownGuardException(error.message);
-        }
-        if (error instanceof NestedGuardException) {
-          throw new NestedGuardException(error.message);
-        }
-        if (error instanceof GuardException) {
-          throw new GuardException(error.message);
-        }
-      }
-    }
+    const results = await Promise.all(
+      allowedGuards.map(guard => guard.execute(interaction))
+    );
+
+    return results.find(result => result.isErr()) ?? this.ok();
   }
 
   private isSpecificGuard(
@@ -84,7 +67,7 @@ export class AndGuard extends BaseGuard<"any"> {
       | MentionableSelectMenuInteraction
       | UserSelectMenuInteraction
       | ModalSubmitInteraction
-  ): keyof BaseGuardTypeMap {
+  ) {
     if (interaction.isChatInputCommand()) return "slashCommand";
     if (interaction.isMessageContextMenuCommand())
       return "messageContextMenuCommand";

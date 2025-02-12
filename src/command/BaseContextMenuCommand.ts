@@ -1,4 +1,5 @@
 import type {
+  Awaitable,
   MessageContextMenuCommandInteraction,
   PermissionResolvable,
   UserContextMenuCommandInteraction
@@ -51,5 +52,7 @@ export abstract class BaseContextMenuCommand<
     this.permissions = permissions;
   }
 
-  abstract execute(interaction: BaseContextMenuCommandTypeMap[T]): unknown;
+  abstract execute(
+    interaction: BaseContextMenuCommandTypeMap[T]
+  ): Awaitable<unknown>;
 }

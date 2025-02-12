@@ -1,4 +1,6 @@
+import { Result } from "@sapphire/result";
 import type {
+  Awaitable,
   ButtonInteraction,
   ChannelSelectMenuInteraction,
   ChatInputCommandInteraction,
@@ -10,7 +12,7 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
-import type { GuardException } from "../exception/GuardException";
+import { GuardError } from "../error/GuardError";
 
 export type BaseGuardTypeMap = {
   slashCommand: ChatInputCommandInteraction;
@@ -47,5 +49,15 @@ export abstract class BaseGuard<T extends keyof BaseGuardTypeMap> {
     this.types = types;
   }
 
-  abstract execute(interaction: BaseGuardTypeMap[T]): unknown | GuardException;
+  abstract execute(
+    interaction: BaseGuardTypeMap[T]
+  ): Awaitable<Result<unknown, GuardError>>;
+
+  ok() {
+    return Result.ok();
+  }
+
+  error(message: string) {
+    return Result.err(new GuardError(message));
+  }
 }

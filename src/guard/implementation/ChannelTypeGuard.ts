@@ -12,8 +12,6 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
-import { GuardException } from "../../exception/GuardException";
-import { GuardExecutionFailException } from "../../exception/GuardExecutionFailException";
 import { BaseGuard } from "../BaseGuard";
 
 export class ChannelTypeGuard extends BaseGuard<"any"> {
@@ -41,13 +39,13 @@ export class ChannelTypeGuard extends BaseGuard<"any"> {
       | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.channel) {
-      throw new GuardExecutionFailException(
-        `While executing ${this.constructor.name}, channel was not found`
-      );
+      return this.error("Interaction channel is not available.");
     }
 
     if (!this.channelTypes.includes(interaction.channel.type)) {
-      throw new GuardException("You need to be in a specific channel type");
+      return this.error("You can only use this in specific channel types.");
     }
+
+    return this.ok();
   }
 }

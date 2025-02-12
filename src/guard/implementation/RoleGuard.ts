@@ -11,8 +11,6 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
-import { GuardException } from "../../exception/GuardException";
-import { GuardExecutionFailException } from "../../exception/GuardExecutionFailException";
 import { BaseGuard } from "../BaseGuard";
 
 export class RoleGuard extends BaseGuard<"any"> {
@@ -42,9 +40,7 @@ export class RoleGuard extends BaseGuard<"any"> {
       | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.inCachedGuild()) {
-      throw new GuardExecutionFailException(
-        `While executing ${this.constructor.name}, guild was not found`
-      );
+      return this.error("Interaction guild is not available.");
     }
 
     const hasRoles = this.roleIds.every(roleId =>
@@ -52,11 +48,17 @@ export class RoleGuard extends BaseGuard<"any"> {
     );
 
     if (this.requireAllRoles && !hasRoles) {
-      throw new GuardException("You need all the required roles");
+      return this.error(
+        "You can only use this if you have all the required roles."
+      );
     }
 
     if (!this.requireAllRoles && !hasRoles) {
-      throw new GuardException("You need at least one of the required roles");
+      return this.error(
+        "You can only use this if you have at least one of the required roles."
+      );
     }
+
+    return this.ok();
   }
 }

@@ -1,9 +1,11 @@
 import type {
+  Awaitable,
   ButtonInteraction,
   ChannelSelectMenuInteraction,
-  InteractionEditReplyOptions,
+  CollectedInteraction,
+  InteractionReplyOptions,
   MentionableSelectMenuInteraction,
-  ModalMessageModalSubmitInteraction,
+  ModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
   UserSelectMenuInteraction
@@ -11,31 +13,67 @@ import type {
 import type { Flucord } from "../../lib/Flucord";
 import type { BaseMenu } from "./BaseMenu";
 
-type Awaitable<T> = PromiseLike<T> | T;
+export abstract class BaseMenuPage<T> {
+  readonly menu: BaseMenu<T>;
 
-export type BaseMenuPageRenderResult = InteractionEditReplyOptions & {
-  content?: string | undefined;
-};
+  readonly flucord: Flucord;
+  state: T;
 
-export abstract class BaseMenuPage<T = unknown> {
-  flucord: Flucord;
-  menu: BaseMenu<T>;
+  constructor(menu: BaseMenu<T>) {
+    this.menu = menu;
 
-  get state() {
-    return this.menu.state;
+    this.state = menu.state;
+    this.flucord = menu.flucord;
   }
 
-  handleButton?(interaction: ButtonInteraction): unknown;
-  handleStringSelectMenu?(interaction: StringSelectMenuInteraction): unknown;
-  handleChannelSelectMenu?(interaction: ChannelSelectMenuInteraction): unknown;
-  handleRoleSelectMenu?(interaction: RoleSelectMenuInteraction): unknown;
+  abstract setRenderer(): Awaitable<InteractionReplyOptions>;
+
+  getRenderer() {
+    return this.setRenderer();
+  }
+
+  handleInteraction(interaction: CollectedInteraction) {
+    if (interaction.isButton() && this.handleButton) {
+      return this.handleButton(interaction);
+    }
+    if (interaction.isStringSelectMenu() && this.handleStringSelectMenu) {
+      return this.handleStringSelectMenu(interaction);
+    }
+    if (interaction.isChannelSelectMenu() && this.handleChannelSelectMenu) {
+      return this.handleChannelSelectMenu(interaction);
+    }
+    if (interaction.isRoleSelectMenu() && this.handleRoleSelectMenu) {
+      return this.handleRoleSelectMenu(interaction);
+    }
+    if (
+      interaction.isMentionableSelectMenu() &&
+      this.handleMentionableSelectMenu
+    ) {
+      return this.handleMentionableSelectMenu(interaction);
+    }
+    if (interaction.isUserSelectMenu() && this.handleUserSelectMenu) {
+      return this.handleUserSelectMenu(interaction);
+    }
+    if (interaction.isModalSubmit() && this.handleModal) {
+      return this.handleModal(interaction);
+    }
+  }
+
+  handleButton?(interaction: ButtonInteraction): Awaitable<unknown>;
+  handleStringSelectMenu?(
+    interaction: StringSelectMenuInteraction
+  ): Awaitable<unknown>;
+  handleChannelSelectMenu?(
+    interaction: ChannelSelectMenuInteraction
+  ): Awaitable<unknown>;
+  handleRoleSelectMenu?(
+    interaction: RoleSelectMenuInteraction
+  ): Awaitable<unknown>;
   handleMentionableSelectMenu?(
     interaction: MentionableSelectMenuInteraction
-  ): unknown;
-  handleUserSelectMenu?(interaction: UserSelectMenuInteraction): unknown;
-  handleModal?(interaction: ModalMessageModalSubmitInteraction): unknown;
-
-  handleEnd?(): unknown;
-
-  abstract render(): Awaitable<BaseMenuPageRenderResult>;
+  ): Awaitable<unknown>;
+  handleUserSelectMenu?(
+    interaction: UserSelectMenuInteraction
+  ): Awaitable<unknown>;
+  handleModal?(interaction: ModalSubmitInteraction): Awaitable<unknown>;
 }

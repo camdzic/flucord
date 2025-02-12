@@ -24,12 +24,6 @@ export class CoreClientReadyEvent extends BaseEvent<"ready"> {
     }
 
     this.flucord.logger.info("Bot is ready");
-
-    process.on("unhandledRejection", error => this.flucord.logger.error(error));
-    process.on("uncaughtException", error => this.flucord.logger.error(error));
-    process.on("uncaughtExceptionMonitor", error =>
-      this.flucord.logger.error(error)
-    );
   }
 
   private async registerCommands() {

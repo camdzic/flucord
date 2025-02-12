@@ -1,4 +1,4 @@
-import type { ClientEvents } from "discord.js";
+import type { Awaitable, ClientEvents } from "discord.js";
 import type { Flucord } from "../lib/Flucord";
 
 type BaseEventOptions<K extends keyof ClientEvents> = {
@@ -19,5 +19,5 @@ export abstract class BaseEvent<K extends keyof ClientEvents> {
     this.once = once;
   }
 
-  abstract execute(...args: ClientEvents[K]): unknown;
+  abstract execute(...args: ClientEvents[K]): Awaitable<unknown>;
 }

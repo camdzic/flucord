@@ -4,7 +4,7 @@ import type {
   CacheType,
   ChannelSelectMenuInteraction,
   CollectedInteraction,
-  InteractionReplyOptions,
+  InteractionEditReplyOptions,
   MentionableSelectMenuInteraction,
   ModalSubmitInteraction,
   RoleSelectMenuInteraction,
@@ -27,11 +27,11 @@ export abstract class BaseMenuPage<T> {
     this.flucord = menu.flucord;
   }
 
-  abstract setRenderer(): Awaitable<InteractionReplyOptions>;
-
-  getRenderer() {
-    return this.setRenderer();
-  }
+  abstract render(): Awaitable<
+    InteractionEditReplyOptions & {
+      content?: string;
+    }
+  >;
 
   handleInteraction(interaction: CollectedInteraction) {
     if (interaction.isButton() && this.handleButton) {

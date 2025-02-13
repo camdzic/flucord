@@ -87,8 +87,18 @@ export class BaseMenu<T> {
     return this;
   }
 
+  async render() {
+    if (!this.currentPage) {
+      throw new MenuError("No page to render");
+    }
+
+    const renderedPage = await this.currentPage.render();
+
+    return renderedPage;
+  }
+
   async start(interaction: RepliableInteraction) {
-    const renderedPage = await this.currentPage.getRenderer();
+    const renderedPage = await this.render();
 
     if (interaction.deferred || interaction.replied) {
       this.message = await interaction.editReply(renderedPage);

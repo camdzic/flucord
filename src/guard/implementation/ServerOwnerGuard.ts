@@ -12,6 +12,7 @@ import type {
   UserSelectMenuInteraction
 } from "discord.js";
 import { BaseGuard } from "../BaseGuard";
+import { BaseGuardIdentifier } from "../BaseGuardIdentifier";
 
 export class ServerOwnerGuard extends BaseGuard<"any"> {
   constructor() {
@@ -34,11 +35,17 @@ export class ServerOwnerGuard extends BaseGuard<"any"> {
       | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.inCachedGuild()) {
-      return this.error("Interaction guild is not available.");
+      return this.error({
+        name: BaseGuardIdentifier.InteractionGuildNotAvailable,
+        message: "Interaction guild is not available."
+      });
     }
 
     if (interaction.guild.ownerId !== interaction.user.id) {
-      return this.error("You can only use this if you are the server owner.");
+      return this.error({
+        name: BaseGuardIdentifier.InteractionGuildOwnerOnly,
+        message: "You can only use this if you are the server owner."
+      });
     }
 
     return this.ok();

@@ -39,12 +39,9 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
 
         for (const result of results) {
           if (result.isErr()) {
-            result.inspectErr(async error => {
-              await interaction.reply({
-                embeds: [this.flucord.embeds.error(error.message)],
-                flags: MessageFlags.Ephemeral
-              });
-            });
+            result.inspectErr(error =>
+              this.flucord.client.emit("guardError", interaction, error)
+            );
             return;
           }
         }

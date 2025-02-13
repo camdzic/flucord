@@ -13,6 +13,7 @@ import {
   type UserSelectMenuInteraction
 } from "discord.js";
 import { BaseGuard } from "../BaseGuard";
+import { BaseGuardIdentifier } from "../BaseGuardIdentifier";
 
 export class NSFWChannelGuard extends BaseGuard<"any"> {
   constructor() {
@@ -35,14 +36,20 @@ export class NSFWChannelGuard extends BaseGuard<"any"> {
       | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.channel) {
-      return this.error("Interaction channel is not available.");
+      return this.error({
+        name: BaseGuardIdentifier.InteractionChannelNotAvailable,
+        message: "Interaction channel is not available."
+      });
     }
 
     if (
       interaction.channel.type === ChannelType.GuildText &&
       !interaction.channel.nsfw
     ) {
-      return this.error("You can only use this in NSFW channels.");
+      return this.error({
+        name: BaseGuardIdentifier.InteractionChannelNSFWOnly,
+        message: "You can only use this in NSFW channels."
+      });
     }
 
     return this.ok();

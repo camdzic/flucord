@@ -12,7 +12,7 @@ import type {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from "discord.js";
-import { GuardError } from "../error/GuardError";
+import { GuardError, type GuardErrorOptions } from "../error/GuardError";
 
 export type BaseGuardTypeMap = {
   slashCommand: ChatInputCommandInteraction;
@@ -57,7 +57,7 @@ export abstract class BaseGuard<T extends keyof BaseGuardTypeMap> {
     return Result.ok();
   }
 
-  error(message: string) {
-    return Result.err(new GuardError(message));
+  error({ name, message, silent }: GuardErrorOptions) {
+    return Result.err(new GuardError({ name, message, silent }));
   }
 }

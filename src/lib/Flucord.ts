@@ -10,6 +10,7 @@ import { BaseSlashCommand } from "../command/BaseSlashCommand";
 import { BaseCron, type TimeZone } from "../cron/BaseCron";
 import { BaseEvent } from "../event/BaseEvent";
 import { CoreClientReadyEvent } from "../event/implementation/client/CoreClientReadyEvent";
+import { GuardErrorEvent } from "../event/implementation/guard/GuardErrorEvent";
 import { CoreContextMenuCommandHandle } from "../event/implementation/interaction/command/CoreContextMenuCommandHandle";
 import { CoreSlashCommandHandle } from "../event/implementation/interaction/command/CoreSlashCommandHandle";
 import { CoreTriggerHandle } from "../event/implementation/interaction/trigger/CoreTriggerHandle";
@@ -41,11 +42,12 @@ export class Flucord {
   readonly logger: Logger;
   embeds: EmbedBuilder;
 
-  private readonly events: BaseEvent<keyof ClientEvents>[] = [
+  private events: BaseEvent<keyof ClientEvents>[] = [
     new CoreClientReadyEvent(this),
     new CoreContextMenuCommandHandle(this),
     new CoreSlashCommandHandle(this),
-    new CoreTriggerHandle(this)
+    new CoreTriggerHandle(this),
+    new GuardErrorEvent(this)
   ];
   slashCommands: BaseSlashCommand[] = [];
   contextMenuCommands: BaseContextMenuCommand<
@@ -114,19 +116,22 @@ export class Flucord {
 
   private async loadEvents() {
     const events = await this.loadFiles(this.eventsDir);
-    const baseEvents = [
-      ...events.filter(event => event instanceof BaseEvent),
-      ...this.events
-    ];
+    const baseEvents = events.filter(event => event instanceof BaseEvent);
 
-    for (const event of baseEvents) {
+    if (baseEvents.find(event => event.event === "guardError")) {
+      this.events = this.events.filter(event => event.event !== "guardError");
+    }
+
+    const combinedEvents = [...this.events, ...baseEvents];
+
+    for (const event of combinedEvents) {
       this.client[event.once ? "once" : "on"](
         event.event,
         event.execute.bind(event)
       );
     }
 
-    this.logger.info(`Loaded ${baseEvents.length} events`);
+    this.logger.info(`Loaded ${combinedEvents.length} events`);
   }
 
   private async loadCommands() {

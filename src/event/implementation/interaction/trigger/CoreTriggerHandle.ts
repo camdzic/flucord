@@ -1,15 +1,14 @@
 import { Result } from "@sapphire/result";
-import {
-  type ButtonInteraction,
-  type CacheType,
-  type ChannelSelectMenuInteraction,
-  type Interaction,
-  type MentionableSelectMenuInteraction,
-  MessageFlags,
-  type ModalSubmitInteraction,
-  type RoleSelectMenuInteraction,
-  type StringSelectMenuInteraction,
-  type UserSelectMenuInteraction
+import type {
+  ButtonInteraction,
+  CacheType,
+  ChannelSelectMenuInteraction,
+  Interaction,
+  MentionableSelectMenuInteraction,
+  ModalSubmitInteraction,
+  RoleSelectMenuInteraction,
+  StringSelectMenuInteraction,
+  UserSelectMenuInteraction
 } from "discord.js";
 import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
@@ -75,12 +74,9 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
 
       for (const result of results) {
         if (result.isErr()) {
-          result.inspectErr(async error => {
-            await interaction.reply({
-              embeds: [this.flucord.embeds.error(error.message)],
-              flags: MessageFlags.Ephemeral
-            });
-          });
+          result.inspectErr(error =>
+            this.flucord.client.emit("guardError", interaction, error)
+          );
           return;
         }
       }

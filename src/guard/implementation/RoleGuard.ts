@@ -12,6 +12,7 @@ import type {
   UserSelectMenuInteraction
 } from "discord.js";
 import { BaseGuard } from "../BaseGuard";
+import { BaseGuardIdentifier } from "../BaseGuardIdentifier";
 
 export class RoleGuard extends BaseGuard<"any"> {
   private readonly requireAllRoles: boolean;
@@ -40,7 +41,10 @@ export class RoleGuard extends BaseGuard<"any"> {
       | ModalSubmitInteraction<CacheType>
   ) {
     if (!interaction.inCachedGuild()) {
-      return this.error("Interaction guild is not available.");
+      return this.error({
+        name: BaseGuardIdentifier.InteractionGuildNotAvailable,
+        message: "Interaction guild is not available."
+      });
     }
 
     const hasRoles = this.roleIds.every(roleId =>
@@ -48,15 +52,18 @@ export class RoleGuard extends BaseGuard<"any"> {
     );
 
     if (this.requireAllRoles && !hasRoles) {
-      return this.error(
-        "You can only use this if you have all the required roles."
-      );
+      return this.error({
+        name: BaseGuardIdentifier.InteractionMultiRoleRequired,
+        message: "You can only use this if you have all the required roles."
+      });
     }
 
     if (!this.requireAllRoles && !hasRoles) {
-      return this.error(
-        "You can only use this if you have at least one of the required roles."
-      );
+      return this.error({
+        name: BaseGuardIdentifier.InteractionAnyRoleRequired,
+        message:
+          "You can only use this if you have at least one of the required roles."
+      });
     }
 
     return this.ok();

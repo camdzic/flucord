@@ -12,7 +12,6 @@ import type {
   UserSelectMenuInteraction
 } from "discord.js";
 import { BaseGuard } from "../BaseGuard";
-import { BaseGuardIdentifier } from "../BaseGuardIdentifier";
 
 export class RoleGuard extends BaseGuard<"any"> {
   private readonly requireAllRoles: boolean;
@@ -42,7 +41,7 @@ export class RoleGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.inCachedGuild()) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionGuildNotAvailable,
+        name: "interactionGuildNotAvailable",
         message: "Interaction guild is not available."
       });
     }
@@ -53,14 +52,14 @@ export class RoleGuard extends BaseGuard<"any"> {
 
     if (this.requireAllRoles && !hasRoles) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionMultiRoleRequired,
+        name: "interactionMultiRoleRequired",
         message: "You can only use this if you have all the required roles."
       });
     }
 
     if (!this.requireAllRoles && !hasRoles) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionAnyRoleRequired,
+        name: "interactionAnyRoleRequired",
         message:
           "You can only use this if you have at least one of the required roles."
       });

@@ -1,13 +1,11 @@
-import type { BaseGuardIdentifier } from "../guard/BaseGuardIdentifier";
-
 export type GuardErrorOptions = {
-  name: BaseGuardIdentifier;
+  name: string;
   message: string;
   silent?: boolean;
 };
 
 export class GuardError extends Error {
-  readonly name: BaseGuardIdentifier;
+  readonly name: string;
   readonly silent: boolean;
 
   constructor({ name, message, silent = false }: GuardErrorOptions) {

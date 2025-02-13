@@ -12,7 +12,6 @@ import type {
   UserSelectMenuInteraction
 } from "discord.js";
 import { BaseGuard } from "../BaseGuard";
-import { BaseGuardIdentifier } from "../BaseGuardIdentifier";
 
 export class ChannelGuard extends BaseGuard<"any"> {
   private readonly channelIds: string[];
@@ -40,14 +39,14 @@ export class ChannelGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.channel) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionChannelNotAvailable,
+        name: "interactionChannelNotAvailable",
         message: "Interaction channel is not available."
       });
     }
 
     if (!this.channelIds.includes(interaction.channel.id)) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionChannelNotAllowed,
+        name: "interactionChannelNotAllowed",
         message: "You can only use this in specific channels."
       });
     }

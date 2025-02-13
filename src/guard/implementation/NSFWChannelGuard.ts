@@ -13,7 +13,6 @@ import {
   type UserSelectMenuInteraction
 } from "discord.js";
 import { BaseGuard } from "../BaseGuard";
-import { BaseGuardIdentifier } from "../BaseGuardIdentifier";
 
 export class NSFWChannelGuard extends BaseGuard<"any"> {
   constructor() {
@@ -37,7 +36,7 @@ export class NSFWChannelGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.channel) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionChannelNotAvailable,
+        name: "interactionChannelNotAvailable",
         message: "Interaction channel is not available."
       });
     }
@@ -47,7 +46,7 @@ export class NSFWChannelGuard extends BaseGuard<"any"> {
       !interaction.channel.nsfw
     ) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionChannelNSFWOnly,
+        name: "interactionChannelNSFWOnly",
         message: "You can only use this in NSFW channels."
       });
     }

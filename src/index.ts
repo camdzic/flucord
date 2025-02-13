@@ -6,7 +6,6 @@ export * from "./command/BaseContextMenuCommand";
 export * from "./event/BaseEvent";
 
 export * from "./guard/BaseGuard";
-export * from "./guard/BaseGuardIdentifier";
 export * from "./guard/implementation/ChannelTypeGuard";
 export * from "./guard/implementation/RoleGuard";
 export * from "./guard/implementation/ChannelGuard";

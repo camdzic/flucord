@@ -12,7 +12,6 @@ import type {
   UserSelectMenuInteraction
 } from "discord.js";
 import { BaseGuard } from "../BaseGuard";
-import { BaseGuardIdentifier } from "../BaseGuardIdentifier";
 
 export class ServerOwnerGuard extends BaseGuard<"any"> {
   constructor() {
@@ -36,14 +35,14 @@ export class ServerOwnerGuard extends BaseGuard<"any"> {
   ) {
     if (!interaction.inCachedGuild()) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionGuildNotAvailable,
+        name: "interactionGuildNotAvailable",
         message: "Interaction guild is not available."
       });
     }
 
     if (interaction.guild.ownerId !== interaction.user.id) {
       return this.error({
-        name: BaseGuardIdentifier.InteractionGuildOwnerOnly,
+        name: "interactionGuildOwnerOnly",
         message: "You can only use this if you are the server owner."
       });
     }

@@ -63,11 +63,10 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
       );
 
       if (slashCommand && slashCommand.autocompleteExecute) {
-        const autocompleteExecute = slashCommand.autocompleteExecute;
-
-        const result = await Result.fromAsync(
-          async () => await autocompleteExecute(interaction)
-        );
+        const result = await Result.fromAsync(async () => {
+          //@ts-ignore
+          await slashCommand.autocompleteExecute(interaction);
+        });
 
         result.inspectErr(error => {
           this.flucord.logger.error(

@@ -15,7 +15,7 @@ import type { Flucord } from "../../../../lib/Flucord";
 import type { BaseTriggerTypeMap } from "../../../../trigger/BaseTrigger";
 import { BaseEvent } from "../../../BaseEvent";
 
-export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
+export class CoreTriggerHandleEvent extends BaseEvent<"interactionCreate"> {
   constructor(flucord: Flucord) {
     super(flucord, {
       event: "interactionCreate"
@@ -86,10 +86,9 @@ export class CoreTriggerHandle extends BaseEvent<"interactionCreate"> {
       async () => await trigger.execute(interaction)
     );
 
-    result.inspectErr(error => {
-      this.flucord.logger.error("An error occurred while executing a trigger");
-      this.flucord.logger.error(error);
-    });
+    result.inspectErr(error =>
+      this.flucord.client.emit("triggerError", interaction, error)
+    );
   }
 
   private isSpecificGuard(

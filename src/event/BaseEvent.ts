@@ -25,11 +25,28 @@ export abstract class BaseEvent<K extends keyof ClientEvents> {
 
 export const FlucordEvents = {
   ...Events,
-  GuardError: "guardError" as const
+  GuardError: "guardError" as const,
+  SlashCommandError: "commandError" as const,
+  SlashCommandAutoCompleteError: "autoCompleteError" as const,
+  ContextMenuCommandError: "commandError" as const,
+  TriggerError: "triggerError" as const
 };
 
 declare module "discord.js" {
   interface ClientEvents {
     guardError: [interaction: RepliableInteraction, error: GuardError];
+    slashCommandError: [
+      interaction: ChatInputCommandInteraction,
+      error: unknown
+    ];
+    slashCommandAutoCompleteError: [
+      interaction: AutocompleteInteraction,
+      error: unknown
+    ];
+    contextMenuCommandError: [
+      interaction: ContextMenuCommandInteraction,
+      error: unknown
+    ];
+    triggerError: [interaction: MessageComponentInteraction, error: unknown];
   }
 }

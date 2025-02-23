@@ -15,11 +15,11 @@ export class GuardErrorEvent extends BaseEvent<"guardError"> {
   }
 
   execute(interaction: RepliableInteraction<CacheType>, error: GuardError) {
-    if (error.silent) return;
-
-    return interaction.reply({
-      embeds: [this.flucord.embeds.error(error.message)],
-      flags: MessageFlags.Ephemeral
-    });
+    if (!error.silent) {
+      return interaction.reply({
+        embeds: [this.flucord.embeds.error(error.message)],
+        flags: MessageFlags.Ephemeral
+      });
+    }
   }
 }

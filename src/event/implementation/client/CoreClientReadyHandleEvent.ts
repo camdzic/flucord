@@ -9,7 +9,7 @@ import type { BaseContextMenuCommandTypeMap } from "../../../command/BaseContext
 import type { Flucord } from "../../../lib/Flucord";
 import { BaseEvent } from "../../BaseEvent";
 
-export class CoreClientReadyEvent extends BaseEvent<"ready"> {
+export class CoreClientReadyHandleEvent extends BaseEvent<"ready"> {
   constructor(flucord: Flucord) {
     super(flucord, {
       event: "ready"

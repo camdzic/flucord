@@ -4,7 +4,7 @@ import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
 
-export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
+export class CoreSlashCommandHandleEvent extends BaseEvent<"interactionCreate"> {
   constructor(flucord: Flucord) {
     super(flucord, {
       event: "interactionCreate"
@@ -51,12 +51,9 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
         async () => await slashCommand.execute(interaction)
       );
 
-      result.inspectErr(error => {
-        this.flucord.logger.error(
-          "An error occurred while executing a slash command"
-        );
-        this.flucord.logger.error(error);
-      });
+      result.inspectErr(error =>
+        this.flucord.client.emit("slashCommandError", interaction, error)
+      );
     } else if (interaction.isAutocomplete()) {
       const slashCommand = this.flucord.slashCommands.find(
         command => command.name === interaction.commandName
@@ -68,12 +65,13 @@ export class CoreSlashCommandHandle extends BaseEvent<"interactionCreate"> {
           await slashCommand.autocompleteExecute(interaction);
         });
 
-        result.inspectErr(error => {
-          this.flucord.logger.error(
-            "An error occurred while executing a slash command autocomplete"
-          );
-          this.flucord.logger.error(error);
-        });
+        result.inspectErr(error =>
+          this.flucord.client.emit(
+            "slashCommandAutoCompleteError",
+            interaction,
+            error
+          )
+        );
       }
     }
   }

@@ -11,7 +11,7 @@ import type { BaseGuard, BaseGuardTypeMap } from "../../../../guard/BaseGuard";
 import type { Flucord } from "../../../../lib/Flucord";
 import { BaseEvent } from "../../../BaseEvent";
 
-export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate"> {
+export class CoreContextMenuCommandHandleEvent extends BaseEvent<"interactionCreate"> {
   constructor(flucord: Flucord) {
     super(flucord, {
       event: "interactionCreate"
@@ -78,12 +78,9 @@ export class CoreContextMenuCommandHandle extends BaseEvent<"interactionCreate">
       async () => await contextMenuCommand.execute(interaction)
     );
 
-    result.inspectErr(error => {
-      this.flucord.logger.error(
-        "An error occurred while executing a context menu command"
-      );
-      this.flucord.logger.error(error);
-    });
+    result.inspectErr(error =>
+      this.flucord.client.emit("contextMenuCommandError", interaction, error)
+    );
   }
 
   private isSpecificGuard(

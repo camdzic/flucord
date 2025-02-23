@@ -47,6 +47,6 @@ declare module "discord.js" {
       interaction: ContextMenuCommandInteraction,
       error: unknown
     ];
-    triggerError: [interaction: MessageComponentInteraction, error: unknown];
+    triggerError: [interaction: RepliableInteraction, error: unknown];
   }
 }

@@ -1,4 +1,4 @@
-import type { CacheType, MessageComponentInteraction } from "discord.js";
+import type { CacheType, RepliableInteraction } from "discord.js";
 import type { Flucord } from "../../../lib/Flucord";
 import { BaseEvent } from "../../BaseEvent";
 
@@ -9,10 +9,7 @@ export class TriggerErrorEvent extends BaseEvent<"triggerError"> {
     });
   }
 
-  execute(
-    _interaction: MessageComponentInteraction<CacheType>,
-    error: unknown
-  ) {
+  execute(_interaction: RepliableInteraction<CacheType>, error: unknown) {
     this.flucord.logger.error("An error occurred while executing a trigger");
     this.flucord.logger.error(error);
   }

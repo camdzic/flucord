@@ -57,6 +57,7 @@ export class CoreClientReadyHandleEvent extends BaseEvent<"ready"> {
           );
         }
 
+        await this.flucord.client.application.commands.set([]);
         await guild.commands.set(commands);
       }
     } catch (error) {

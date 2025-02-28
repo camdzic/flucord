@@ -49,7 +49,9 @@ export class CoreClientReadyHandleEvent extends BaseEvent<"ready"> {
           );
         }
 
-        const guild = this.flucord.client.guilds.cache.get(guildId);
+        const guild = await this.flucord.client.guilds
+          .fetch(guildId)
+          .catch(() => null);
 
         if (!guild) {
           return this.flucord.logger.warn(

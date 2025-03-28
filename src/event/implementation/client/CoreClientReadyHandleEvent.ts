@@ -95,12 +95,12 @@ export class CoreClientReadyHandleEvent extends BaseEvent<"ready"> {
         data.integration_types = [ApplicationIntegrationType.GuildInstall];
       }
 
-      if (command.options && command.options.length) {
+      if (command.options?.length) {
         //@ts-ignore
         data.options = command.options;
       }
 
-      if (command.permissions && command.permissions.length) {
+      if (command.permissions?.length) {
         //@ts-ignore
         data.defaultMemberPermissions = command.permissions;
       }
@@ -140,7 +140,7 @@ export class CoreClientReadyHandleEvent extends BaseEvent<"ready"> {
         data.integration_types = [ApplicationIntegrationType.GuildInstall];
       }
 
-      if (command.permissions && command.permissions.length) {
+      if (command.permissions?.length) {
         //@ts-ignore
         data.defaultMemberPermissions = command.permissions;
       }

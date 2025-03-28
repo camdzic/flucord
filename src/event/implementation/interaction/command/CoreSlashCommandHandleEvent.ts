@@ -59,7 +59,7 @@ export class CoreSlashCommandHandleEvent extends BaseEvent<"interactionCreate"> 
         command => command.name === interaction.commandName
       );
 
-      if (slashCommand && slashCommand.autocompleteExecute) {
+      if (slashCommand?.autocompleteExecute) {
         const result = await Result.fromAsync(async () => {
           //@ts-ignore
           await slashCommand.autocompleteExecute(interaction);

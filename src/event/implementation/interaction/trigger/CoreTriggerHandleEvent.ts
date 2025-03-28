@@ -59,7 +59,9 @@ export class CoreTriggerHandleEvent extends BaseEvent<"interactionCreate"> {
           : t.id === interaction.customId
       );
 
-    if (!trigger) return;
+    if (!trigger) {
+      return;
+    }
 
     if (trigger.guards) {
       const triggerGuards = trigger.guards.filter(g =>

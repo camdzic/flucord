@@ -1,7 +1,7 @@
 {
   "name": "flucord",
   "description": "A high-level, object-oriented, type-safe, and easy-to-use Discord.js framework for TypeScript",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "author": {
     "name": "Aldin Čamdžić",
     "email": "acamdzic0@proton.me"
@@ -17,7 +17,7 @@
     "@biomejs/biome": "1.9.4",
     "@types/bun": "1.2.8",
     "discord.js": "^14.18.0",
-    "lefthook": "^1.11.2",
+    "lefthook": "^1.11.5",
     "semantic-release": "^24.2.3"
   },
   "peerDependencies": {
@@ -26,7 +26,7 @@
   "dependencies": {
     "@sapphire/result": "^2.7.2",
     "colorette": "^2.0.20",
-    "cron": "^4.1.0",
+    "cron": "^4.1.1",
     "ts-cron-validator": "^1.1.5",
     "zod": "^3.24.2"
   }

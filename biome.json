@@ -7,19 +7,15 @@
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
-    "indentWidth": 2,
     "formatWithErrors": true
   },
   "javascript": {
     "formatter": {
       "enabled": true,
-      "quoteStyle": "double",
       "lineEnding": "lf",
       "semicolons": "always",
       "trailingCommas": "none",
-      "quoteProperties": "asNeeded",
-      "arrowParentheses": "asNeeded",
-      "bracketSpacing": true
+      "arrowParentheses": "asNeeded"
     }
   },
   "json": {
@@ -33,40 +29,17 @@
     "enabled": true
   },
   "linter": {
-    "enabled": true,
     "rules": {
       "recommended": true,
       "style": {
-        "useConst": "warn",
-        "noVar": "error",
-        "noParameterProperties": "warn",
-        "noUselessElse": "warn",
-        "useShorthandFunctionType": "warn",
-        "useImportType": "warn"
+        "useBlockStatements": "error"
       },
       "correctness": {
-        "noUnusedImports": "warn",
-        "noUnusedVariables": "warn",
-        "noUnusedFunctionParameters": "warn",
-        "noConstantCondition": "warn",
-        "noConstantMathMinMaxClamp": "warn",
-        "noConstructorReturn": "error",
-        "noUnsafeOptionalChaining": "warn"
-      },
-      "complexity": {
-        "noForEach": "warn",
-        "noExtraBooleanCast": "warn",
-        "noUselessCatch": "warn",
-        "noUselessConstructor": "warn",
-        "noUselessLabel": "warn",
-        "noUselessLoneBlockStatements": "warn",
-        "useFlatMap": "warn",
-        "useOptionalChain": "off"
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
       },
       "suspicious": {
-        "noDoubleEquals": "warn",
-        "useAwait": "warn",
-        "noExplicitAny": "off"
+        "useAwait": "error"
       }
     }
   }

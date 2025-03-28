@@ -96,7 +96,7 @@ export class Flucord {
   }
 
   private async loadFiles(directory: string) {
-    const files: any[] = [];
+    const files: unknown[] = [];
 
     const glob = new Glob(`src/${directory}/**/*.ts`);
     for await (const file of glob.scan({ absolute: true, onlyFiles: true })) {
@@ -108,7 +108,7 @@ export class Flucord {
           value.prototype &&
           value.prototype.constructor
         ) {
-          // @ts-ignore
+          //@ts-ignore
           const instance = new value(this);
           files.push(instance);
         }

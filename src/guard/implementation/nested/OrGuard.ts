@@ -68,17 +68,36 @@ export class OrGuard extends BaseGuard<"any"> {
       | UserSelectMenuInteraction
       | ModalSubmitInteraction
   ): keyof BaseGuardTypeMap {
-    if (interaction.isChatInputCommand()) return "slashCommand";
-    if (interaction.isMessageContextMenuCommand())
+    if (interaction.isChatInputCommand()) {
+      return "slashCommand";
+    }
+    if (interaction.isMessageContextMenuCommand()) {
       return "messageContextMenuCommand";
-    if (interaction.isUserContextMenuCommand()) return "userContextMenuCommand";
-    if (interaction.isButton()) return "button";
-    if (interaction.isStringSelectMenu()) return "stringSelectMenu";
-    if (interaction.isChannelSelectMenu()) return "channelSelectMenu";
-    if (interaction.isRoleSelectMenu()) return "roleSelectMenu";
-    if (interaction.isMentionableSelectMenu()) return "mentionableSelectMenu";
-    if (interaction.isUserSelectMenu()) return "userSelectMenu";
-    if (interaction.isModalSubmit()) return "modal";
+    }
+    if (interaction.isUserContextMenuCommand()) {
+      return "userContextMenuCommand";
+    }
+    if (interaction.isButton()) {
+      return "button";
+    }
+    if (interaction.isStringSelectMenu()) {
+      return "stringSelectMenu";
+    }
+    if (interaction.isChannelSelectMenu()) {
+      return "channelSelectMenu";
+    }
+    if (interaction.isRoleSelectMenu()) {
+      return "roleSelectMenu";
+    }
+    if (interaction.isMentionableSelectMenu()) {
+      return "mentionableSelectMenu";
+    }
+    if (interaction.isUserSelectMenu()) {
+      return "userSelectMenu";
+    }
+    if (interaction.isModalSubmit()) {
+      return "modal";
+    }
 
     throw new Error("Unknown interaction type");
   }
